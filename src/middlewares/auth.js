@@ -6,16 +6,18 @@ const isValidObjectId = function (objectId) {
     return mongoose.Types.ObjectId.isValid(objectId)
 }
 
-//----------------------------------------authentication----------------------------------------------------*/
+
+/*############################################ authentication ##########################################################*/
+
 const authentication = async function (req, res, next) {
     try {
-        let token = req.header('x-api-key', 'Bearer Token');
+        let token = req.header('Authorization', 'Bearer Token');
         if (!token) {
             return res.status(400).send({ status: false, message: "login is required" })
         }
 
         let splitToken = token.split(" ")
-        console.log(splitToken)
+        // console.log(splitToken)
 
         let verifiedtoken = jwt.verify(splitToken[1], "doneBy50")
         if (!verifiedtoken) return res.status(400).send({ status: false, message: "token is invalid" })
@@ -33,11 +35,11 @@ const authentication = async function (req, res, next) {
     }
 }
 
-// //----------------------------------------authorization----------------------------------------------------*/
+/*############################################ authorization ##########################################################*/
 
 let authorization = async function (req, res, next) {
     try {
-        let token = req.header('x-api-key', 'Bearer Token');
+        let token = req.header('Authorization', 'Bearer Token');
         let splitToken = token.split(" ")
         let decodedtoken = jwt.verify(splitToken[1], "doneBy50")
         let userId = req.params.userId;
@@ -45,9 +47,11 @@ let authorization = async function (req, res, next) {
             return res.status(400).send({ status: false, msg: "Please enter valid userId" })
 
         let user = await userModel.findOne({ _id: userId })
-        if (!user) { return res.status(404).send({ status: false, msg: "user does not exist with this userId" }) }
+        if (!user) {
+             return res.status(404).send({ status: false, msg: "User does not exist with this userId" }) 
+            }
         if (decodedtoken.userId != user._id) {
-            return res.status(403).send({ status: false, msg: " unauthorised access" })
+            return res.status(403).send({ status: false, msg: "Unauthorised access" })
         }
         next()
     }

@@ -244,7 +244,7 @@ const userLogin = async function (req, res) {
             exp: Math.floor(Date.now() / 1000) + 1 * 60 * 60
         }, "doneBy50")
 
-        res.setHeader("x-api-key", token)
+        res.setHeader("Authorization", token)
         const output = {
             userId: user._id,
             token: token
