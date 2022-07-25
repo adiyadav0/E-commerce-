@@ -6,8 +6,8 @@ const multer = require("multer");
 const app = express();
 
 
-app.use(bodyParser.json());
 app.use(multer().any());
+app.use(bodyParser.json());
 
 
 mongoose
