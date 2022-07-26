@@ -223,42 +223,35 @@ const updateData = async function (req, res) {
         let data = req.body
         let files = req.files
 
-
+        
         let { fname, lname, email, phone, password, address } = data
         //-----------------------------VALIDATING USERID-----------------------------------------------------//
         if (!mongoose.isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "Invalid UserId ..." })
-
+        
         let checkUser = await userModel.findOne({ _id: userId })
         if (!checkUser) return res.status(404).send({ status: false, message: `This UserId: ${userId} doesn't exist` })
-
-        //----------------------------AUTHORIZATION ----------------------------------------------------------//
-        if (userId != checkUser._id) {
-            return res.status(401).send({ status: false, msg: "USER NOT AUTHORISED!!" })
-        }
-
-        if (!isValidBody(data)) {
+               
+        if (!isValidBody(data) && !isValid(files)) {
             return res.status(400).send({ status: false, msg: "please provide data in request body" })
         }
-
 
         if (files && files.length != 0) {
             let uploadedFileURL = await upload.uploadFile(files[0])
             checkUser.profileImage = uploadedFileURL
         }  
 
-
         if (fname) {
             if (!isValid(fname) || !NameRegex.test(fname)) {
                 return res.status(400).send({ status: false, message: "first name is not Valid" })
             }
+            checkUser.fname = fname
         }
-        checkUser.fname = fname
 
         if (lname) {
             if (!isValid(lname) || !NameRegex.test(lname)) {
                 return res.status(400).send({ status: false, msg: "last name is not Valid" })
+            } checkUser.lname = lname
             }
-        } checkUser.lname = lname
 
         if (email) {
             if (!isValid(email) || !emailRegex.test(email)) {
@@ -267,8 +260,8 @@ const updateData = async function (req, res) {
             let uniqueEmail = await userModel.findOne({ email: email })
             if (uniqueEmail) {
                 return res.status(409).send({ status: false, msg: "This email already exists, Please try another one." })
+            } checkUser.email = email
             }
-        } checkUser.email = email
 
 
         if (phone) {
@@ -283,20 +276,20 @@ const updateData = async function (req, res) {
 
         //--------------------------------UPDATING BCRYPTED PASSWORD------------------------------------------//
         if (password) {
-            if (passwordRegex.test(password)) {
+            if (passwordRegex.test(password)) { 
                 let saltRounds = await bcrypt.genSalt(10)
                 password = await bcrypt.hash(password, saltRounds)
-                checkUser.password = password
             }
             else {
                 return res.status(400).send({ status: false, message: "password should be strong please use One digit, one upper case , one lower case ,one special character, its b/w 8 to 15" })
             }
+            checkUser.password = password
         }
 
         //------------------------------ADDRESS VALIDATION FOR UPDATING---------------------------------------//
         if (address) {
             if (Object.keys(address).length == 0) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!!" })
-            // address = JSON.parse(address)
+            // address = JSON.parse(address) 
             if (address.shipping) {
                 if (address.shipping.street) {
                     if (!addressStreetRegex.test(address.shipping.street)) {
@@ -330,15 +323,15 @@ const updateData = async function (req, res) {
                     } checkUser.address.billing.city = address.billing.city
                 }
 
-                if (address.billing.pincode) {
+                if (address.billing.pincode) { 
                     if (!pincodeRegex.test(address.billing.pincode)) {
                         return res.status(400).send({ status: false, message: "Invalid Billing pincode" })
                     } checkUser.address.billing.pincode = address.billing.pincode
                 }
             }
         }
-        checkUser.save()
-        res.status(200).send({ status: true, message: "User profile details", data: checkUser })
+        await checkUser.save()
+        return res.status(200).send({ status: true, message: "User profile details", data: checkUser })
     }
     catch (error) {
         console.log(error)
