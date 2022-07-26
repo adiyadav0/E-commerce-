@@ -17,18 +17,15 @@ const authentication = async function (req, res, next) {
         }
 
         let splitToken = token.split(" ")
-        // console.log(splitToken)
 
-        let verifiedtoken = jwt.verify(splitToken[1], "doneBy50")
-        if (!verifiedtoken) return res.status(400).send({ status: false, message: "token is invalid" })
-
-        let exp = verifiedtoken.exp
-        let iatNow = Math.floor(Date.now() / 1000)
-        if (exp < iatNow) {
-            return res.status(401).send({ status: false, message: 'session expired, please login again' })
-        }
-
-        next();
+        jwt.verify(splitToken[1], "doneBy50", (error) => {
+            if (error) {
+                const message =
+                    error.message === "jwt expired" ? "Token is expired, Please login again" : "Token is invalid, Please recheck your Token"
+                return res.status(401).send({ status: false, message })
+            }
+            next();
+        })
     }
     catch (error) {
         return res.status(500).send({ status: false, msg: error.message })
@@ -48,8 +45,8 @@ let authorization = async function (req, res, next) {
 
         let user = await userModel.findOne({ _id: userId })
         if (!user) {
-             return res.status(404).send({ status: false, msg: "User does not exist with this userId" }) 
-            }
+            return res.status(404).send({ status: false, msg: "User does not exist with this userId" })
+        }
         if (decodedtoken.userId != user._id) {
             return res.status(403).send({ status: false, msg: "Unauthorised access" })
         }
