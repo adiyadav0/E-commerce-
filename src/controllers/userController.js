@@ -13,7 +13,6 @@ let passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,15}$/
 let addressStreetRegex = /^\d*[a-zA-Z\d\s,.]*$/
 let addressCityRegex = /^[a-zA-Z]+$/
 let pincodeRegex = /^[1-9][0-9]{5}$/
-
 let phoneRegex = /^[6-9]\d{9}$/
 
 const isValid = function (value) {
@@ -83,11 +82,16 @@ const createUser = async function (req, res) {
         const salt = await bcrypt.genSalt(10)
         data.password = await bcrypt.hash(data.password, salt)
 
-
         if (address) {
-            const parseAddress = JSON.parse(address)
+            try{
+                var parseAddress = JSON.parse(address)
+            }
+            catch(error){
+                return res.status(400).send({status: false, message:"Pincode should not start from 0 or Address should be in Object form"})
+            }
+           
             if (parseAddress.shipping != undefined) {
-
+                
                 if (!isValid(parseAddress.shipping.street)) {
                     return res.status(400).send({ status: false, msg: "please provide street for shipping address" })
                 }
@@ -149,13 +153,19 @@ const createUser = async function (req, res) {
 
         let files = req.files
         if (files && files.length > 0) {
+            let check = files[0].mimetype.split("/")
+            const extension = ["png", "jpg", "jpeg", "webp"]
+            if(extension.indexOf(check[1])== -1){
+                return res.status(400).send({status:false, message:"Please provide image only"})
+            }
+           
             //upload to s3 and get the uploaded link
             let uploadedFileURL = await upload.uploadFile(files[0])
-            // res.status(201).send({msg: "file uploaded succesfully", data: uploadedFileURL})
+          
             data.profileImage = uploadedFileURL;
         }
         else {
-            res.status(400).send({ msg: "No file found" })
+            return res.status(400).send({ msg: "No file found" })
         }
 
         const userData = {}
