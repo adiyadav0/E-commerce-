@@ -58,8 +58,8 @@ const createUser = async function (req, res) {
         if (!emailRegex.test(email.trim())) {
             return res.status(400).send({ status: false, msg: "email is invalid" })
         }
-        let userEmail = await userModel.find({ email: data.email })
-        if (userEmail.length !== 0)
+        let userEmail = await userModel.findOne({ email: email.trim() })
+        if (userEmail)
             return res.status(401).send({ status: false, msg: "This e-mail address is already exist , Please enter another E-mail address" })
 
         if (files && files.length > 0) {
@@ -79,8 +79,8 @@ const createUser = async function (req, res) {
         if (!phoneRegex.test(phone.trim())) {
             return res.status(400).send({ status: false, msg: "phone is invalid" })
         }
-        let userNumber = await userModel.find({ phone: data.phone })
-        if (userNumber.length !== 0)
+        let userNumber = await userModel.findOne({ phone: phone.trim() })
+        if (userNumber)
             return res.status(401).send({ status: false, msg: "This phone number is already exist , Please enter another phone number" })
 
         if (!isValid(password)) {
