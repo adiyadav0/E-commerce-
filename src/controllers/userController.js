@@ -61,7 +61,7 @@ const createUser = async function (req, res) {
         }
         let userEmail = await userModel.find({ email: data.email })
         if (userEmail.length !== 0)
-            return res.status(401).send({ status: false, msg: "This e-mail address is already exist , Please enter valid E-mail address" })
+            return res.status(401).send({ status: false, msg: "This e-mail address is already exist , Please enter another E-mail address" })
 
         if (!isValid(phone)) {
             return res.status(400).send({ status: false, msg: "phone is required" })
@@ -84,8 +84,12 @@ const createUser = async function (req, res) {
         data.password = await bcrypt.hash(data.password, salt)
 
 
-        if (address) {
+        if (address) { 
             const parseAddress = JSON.parse(address)
+            
+            if (typeof parseAddress != "object") {
+                return res.status(400).send({ status: false, msg: "Address body should be in object form" });
+            }
             if (parseAddress.shipping != undefined) {
 
                 if (!isValid(parseAddress.shipping.street)) {
@@ -101,13 +105,13 @@ const createUser = async function (req, res) {
                 if (!addressCityRegex.test(parseAddress.shipping.city.trim())) {
                     return res.status(400).send({ status: false, msg: "please provide valid city for shipping address" })
                 }
-
                 if ((parseAddress.shipping.pincode == undefined || null)) {
                     return res.status(400).send({ status: false, msg: "please provide pincode for shipping address" })
                 }
                 // if (/^[0][0-9]{5}$/) {
                 //     return res.status(400).send({ status: false, msg: "please provide valid pincode for shipping address" })
                 // }
+                // const parsePincode = JSON.parseInt(address) 
                 if (!pincodeRegex.test(parseAddress.shipping.pincode)) {
                     return res.status(400).send({ status: false, msg: "please provide valid pincode for shipping address" })
                 }
