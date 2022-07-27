@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const userModel = require('../models/userModel');
 
 const isValidObjectId = function (objectId) {

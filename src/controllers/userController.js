@@ -13,7 +13,6 @@ let passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,15}$/
 let addressStreetRegex = /^\d*[a-zA-Z\d\s,.]*$/
 let addressCityRegex = /^[a-zA-Z]+$/
 let pincodeRegex = /^[1-9][0-9]{5}$/
-
 let phoneRegex = /^[6-9]\d{9}$/
 
 const isValid = function (value) {
@@ -35,7 +34,7 @@ const isValidBody = function (data) {
 const createUser = async function (req, res) {
     try {
         let data = req.body;
-
+        let files = req.files
         const { fname, lname, email, phone, password, address } = data;
 
         if (!isValidBody(data)) {
@@ -63,6 +62,17 @@ const createUser = async function (req, res) {
         if (userEmail.length !== 0)
             return res.status(401).send({ status: false, msg: "This e-mail address is already exist , Please enter another E-mail address" })
 
+        if (files && files.length > 0) {
+            let check = files[0].mimetype.split("/")
+            const extension = ["png", "jpg", "jpeg", "webp"]
+            if (extension.indexOf(check[1]) == -1) {
+                return res.status(400).send({ status: false, message: "Please provide image only" })
+            }
+        }
+        else {
+            return res.status(400).send({ msg: "No file found" })
+        }
+
         if (!isValid(phone)) {
             return res.status(400).send({ status: false, msg: "phone is required" })
         }
@@ -83,13 +93,14 @@ const createUser = async function (req, res) {
         const salt = await bcrypt.genSalt(10)
         data.password = await bcrypt.hash(data.password, salt)
 
-
-        if (address) { 
-            const parseAddress = JSON.parse(address)
-            
-            if (typeof parseAddress != "object") {
-                return res.status(400).send({ status: false, msg: "Address body should be in object form" });
+        if (address) {
+            try {
+                var parseAddress = JSON.parse(address)
             }
+            catch (error) {
+                return res.status(400).send({ status: false, message: "Pincode should not start from 0 or Address should be in Object form" })
+            }
+
             if (parseAddress.shipping != undefined) {
 
                 if (!isValid(parseAddress.shipping.street)) {
@@ -105,13 +116,11 @@ const createUser = async function (req, res) {
                 if (!addressCityRegex.test(parseAddress.shipping.city.trim())) {
                     return res.status(400).send({ status: false, msg: "please provide valid city for shipping address" })
                 }
+
                 if ((parseAddress.shipping.pincode == undefined || null)) {
                     return res.status(400).send({ status: false, msg: "please provide pincode for shipping address" })
                 }
-                // if (/^[0][0-9]{5}$/) {
-                //     return res.status(400).send({ status: false, msg: "please provide valid pincode for shipping address" })
-                // }
-                // const parsePincode = JSON.parseInt(address) 
+
                 if (!pincodeRegex.test(parseAddress.shipping.pincode)) {
                     return res.status(400).send({ status: false, msg: "please provide valid pincode for shipping address" })
                 }
@@ -151,25 +160,22 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, msg: "please provide Address" })
         }
 
-        let files = req.files
-        if (files && files.length > 0) {
-            //upload to s3 and get the uploaded link
-            let uploadedFileURL = await upload.uploadFile(files[0])
-            // res.status(201).send({msg: "file uploaded succesfully", data: uploadedFileURL})
-            data.profileImage = uploadedFileURL;
-        }
-        else {
-            res.status(400).send({ msg: "No file found" })
-        }
+        //upload to s3 and get the uploaded link
+        let uploadedFileURL = await upload.uploadFile(files[0])
+        data.profileImage = uploadedFileURL;
 
         const userData = {}
-        userData.fname = fname,
-            userData.lname = lname,
-            userData.profileImage = data.profileImage,
-            userData.email = email,
-            userData.phone = phone,
-            userData.password = data.password,
-            userData.address = parseAddress
+        userData.fname = fname.trim(),
+        userData.lname = lname.trim(),
+        userData.profileImage = data.profileImage,
+        userData.email = email.trim(),
+        userData.phone = phone.trim(),
+        userData.password = data.password,
+        userData.address = parseAddress
+        userData.address.shipping.street = parseAddress.shipping.street.trim().split(' ').filter(a=>a).join(' ')
+        userData.address.shipping.city = parseAddress.shipping.city.trim().split(' ').filter(a=>a).join(' ')
+        userData.address.billing.street = parseAddress.billing.street.trim().split(' ').filter(a=>a).join(' ')
+        userData.address.billing.city = parseAddress.billing.city.trim().split(' ').filter(a=>a).join(' ')
 
         const document = await userModel.create(userData)
         res.status(201).send({ status: true, data: document })
@@ -182,7 +188,7 @@ const createUser = async function (req, res) {
 
 
 
-/*############################################ userLogin ##########################################################*/
+/*############################################ userLogin ########################################################*/
 
 const userLogin = async function (req, res) {
     try {
@@ -264,7 +270,7 @@ const getUser = async function (req, res) {
 }
 
 
-/*############################################ updateData ##########################################################*/
+/*############################################ updateData #######################################################*/
 
 
 
