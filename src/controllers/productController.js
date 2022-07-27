@@ -79,13 +79,13 @@ const createProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "Available sizes is required or at least provide one size" })
         }
         if (availableSizes) {
-            var availableSize = availableSizes.toUpperCase().split(",") 
+            var availableSize = availableSizes.split(" ").filter(a=>a).join("").toUpperCase().split(",")
             if (availableSize.length === 0) {
                 return res.status(400).send({ status: false, message: "Please provide product sizes" })
             }
             for (let i = 0; i < availableSize.length; i++) {
                 if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(availableSize[i])) {
-                    return res.status(400).send({ status: false, message: 'Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}' })
+                    return res.status(400).send({ status: false, message: 'Sizes should be among ["S", "XS", "M", "X", "L", "XXL", "XL"]' })
                 }
             }
         }
@@ -125,6 +125,10 @@ const createProduct = async function (req, res) {
         res.status(500).send({ status: false, error: err.message });
     }
 }
+
+
+
+
 
 
 
