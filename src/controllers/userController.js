@@ -181,7 +181,6 @@ const createUser = async function (req, res) {
         res.status(201).send({ status: true, data: document })
     }
     catch (error) {
-        console.log(error)
         return res.status(500).send({ status: false, msg: error.message })
     }
 }
