@@ -364,7 +364,7 @@ const updateData = async function (req, res) {
                         return res.status(400).send({ status: false, message: "Invalid Shipping pincode" })
                     } checkUser.address.shipping.pincode = address.shipping.pincode
                 }
-            }
+            } 
 
             if (address.billing) {
                 if (address.billing.street) {

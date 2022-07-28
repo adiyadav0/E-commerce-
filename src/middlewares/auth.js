@@ -14,7 +14,6 @@ const authentication = async function (req, res, next) {
         }
 
         let splitToken = token.split(" ")
-        console.log(token)
 
         jwt.verify(splitToken[1], "doneBy50", (error) => {
             if (error) {

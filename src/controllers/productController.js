@@ -136,16 +136,25 @@ const getproduct = async function (req, res) {
 
         let filter = { isDeleted: false }
 
-        if (size) {
-            let asize = size.split(",")
-            console.log(asize)
+        if ("size" in query) {
+            if (Object.keys(size).length === 0) {
+                return res.status(400).send({ status: false, message: 'Size query is empty, either provide query value or deselect it.' })
+            }
+            let asize = size.toUpperCase().split(",")     
+            console.log(asize) 
             filter.availableSizes = asize[0]
-        }
-        if (name) {
-            filter.name = query.name
+        } 
+        if ("name" in query) {       
+            if (Object.keys(name).length === 0) {
+                return res.status(400).send({ status: false, message: 'Name query is empty, either provide query value or deselect it.' })
+            }
+        filter.title= {$regex:name, $options:"i"}
         }
 
-        if (priceGreaterThan) {
+        if ("priceGreaterThan" in query) {
+            if (Object.keys(priceGreaterThan).length === 0) {
+                return res.status(400).send({ status: false, message: 'priceGreaterThan query is empty, either provide query value or deselect it.' })
+            }
             if (isNaN(priceGreaterThan)) {
                 return res.status(400).send({ status: false, message: 'Price should be a valid number' })
             }
@@ -156,7 +165,12 @@ const getproduct = async function (req, res) {
             filter.price = {}
             filter.price['$gt'] = priceGreaterThan
         }
-        if (priceLessThan) {
+
+
+        if ("priceLessThan" in query) {
+            if (Object.keys(priceLessThan).length === 0) {
+                return res.status(400).send({ status: false, message: 'priceLessThan query is empty, either provide query value or deselect it.' })
+            }
             if (isNaN(priceLessThan)) {
                 return res.status(400).send({ status: false, message: 'Price should be a valid number' })
             }
@@ -166,16 +180,47 @@ const getproduct = async function (req, res) {
             filter.price = {}
             filter.price['$lt'] = priceLessThan
         }
-        if (priceSort) {
-            if (!((priceSort == 1) || (priceSort == -1))) {
+
+        if("priceLessThan" in query && "priceGreaterThan" in query){    
+            // filter.price= {price:{$gt:priceGreaterThan,$lt:priceLessThan}}
+            if(priceLessThan==priceGreaterThan){
+                // const price = priceLessThan
+                // filter.price={}
+                // filter.price['$eq']=priceLessThan
+                return res.status(400).send({ status: false, message: 'No product found with this price' })
+            }
+            if(priceLessThan>priceGreaterThan){
+           const filterPrice=await productModel.find({filter,price:{$gt:priceGreaterThan,$lt:priceLessThan}})
+           return res.status(400).send({ status: true, message: 'product found with this price', data:filterPrice})
+            }
+            // if(priceLessThan<priceGreaterThan){
+            //    const filterPrice =await productModel.find({filter,price:{$nin:{$gt:priceGreaterThan,$lt:priceLessThan}}})
+            //    return res.status(400).send({ status: true, message: 'product found with this price', data:filterPrice})
+            // }
+            
+        }
+
+        let priceSort=query.priceSort
+        if ("priceSort" in query) {
+            if (Object.keys(priceSort).length === 0) {
+                return res.status(400).send({ status: false, message: 'priceSort query is empty, either provide query value or deselect it.' })
+            }
+            if (priceSort != 1 && priceSort != -1) {   
                 return res.status(400).send({ status: false, message: 'priceSort should be 1 or -1 ' })
             }
+
             const products = await productModel.find(filter).sort({ price: priceSort })
+            console.log(products)
             if (products.length === 0) {
                 return res.status(404).send({ productStatus: false, message: 'No Product found' })
             }
-            return res.status(200).send({ status: true, message: 'Success', data: products })
+            return res.status(200).send({ status: true, message: 'Sorted Data', data: products })
         }
+        const products = await productModel.find(filter)
+        if (products.length === 0) {
+            return res.status(404).send({ productStatus: false, message: 'No Product found with matching query' })
+        }
+        return res.status(200).send({ status: true, message: 'Success', data: products })
     }
     catch (err) {
         console.log(err)
@@ -183,63 +228,6 @@ const getproduct = async function (req, res) {
     }
 }
 
-
-
-
-// const getproduct = async function(req,res){
-//     try{
-//     let data = req.query
-//     let filter = { isDeleted: false}
-//         let {size, name, priceGreaterThan , priceLessThan  } = data 
-//         if(!isValidBody(data)){
-//             let allproduct = await productModel.find(filter).sort({priceSort : 1})
-//             if(allproduct.length==0) return res.status(400).send({status:false,msg:"there is no product right now"})
-//             return res.status(200).send({status:false,items : allproduct})
-//         }
-
-//         if(isValid(size)){
-//              let bySize = await productModel.find({availableSizes:size})
-//              if(bySize.length==0){
-//                 return res.status(400).send({status:false,msg:"there is no product with this size"})
-//              }
-//              filter["availableSizes"]=size
-//         }
-
-//         if(isValid(name)){
-//             let byName = await productModel.find({title:name})
-//             if(byName.length==0){
-//                 return res.status(400).send({status:false,msg:"there is no product with this name"})
-//             }
-//             filter["title"]=name
-//         }
-
-//         if(isValidNumber(priceGreaterThan)){
-//             let byGreater = await productModel.find({price:{$gte:priceGreaterThan}})
-//             if(byGreater.length==0){
-//                 return res.status(400).send({status:false,msg:"there is no product greater than this price"})
-//             }
-//             filter["price"]= {$gte:priceGreaterThan}
-//         }
-
-//         if(isValidNumber(priceLessThan)){
-//             let byLesser = await productModel.find({price:{$lte:priceLessThan}})
-//             if(byLesser.length==0){
-//                 return res.status(400).send({status:false,msg:"there is no product Lesser than this price"})
-//             }
-//             filter["price"]= {$lte:priceLessThan}
-//         }
-
-//         let productByQuery = await productModel.find(filter).sort({priceSort : 1})
-//         if(productByQuery.length==0){
-//             return res.status(400).send({status:false,msg:"no product found with this filter"})
-//         }
-//         else{
-//             return res.status(200).send({status:true,items:productByQuery})
-//         }
-// }catch(err){
-//     return res.status(500).send({status:false,msg:err.message})
-// }
-// }
 
 
 
@@ -268,70 +256,7 @@ const getProductById = async function (req, res) {
 
 
 
-const updateProductById = async function (req, res) {
-    try {
-        let productId = req.params.productId;
-        let data = req.body;
-        let files = req.files
 
-        let { title, description, price, style } = data
-
-        if (!mongoose.isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Invalid product Id" })
-
-        let checkPorduct = await productModel.findOne({ _id: productId })
-        if (!checkPorduct) return res.status(400).send({ status: false, message: "This ProductId ${productId} dosen't exit" })
-
-        if (!isValidBody(data)) {
-            return res.status(400).send({ status: false, msg: "please provide data in request body" })
-        }
-
-        // if(title){
-        //     if(!Object.values(title).length>0 || !(/^[a-zA-Z0-9]/.test(title))) {
-        //         return res.status(400).send({status:false, message:"please provide title"})
-        //     }
-        //     title=data.title.trim().split(' ').filter(a=>a).join(' ')
-        // }
-        if (title) {
-            if (!(title)) {
-                return res.status(400).send({ status: false, message: "title is required" })
-            }
-        }
-
-        if (description) {
-            if (!(description)) {
-                return res.status(400).send({ status: false, message: "Description should not be empty" })
-            }
-            else {
-                description = description.trim().split(" ").filter(word => word).join(" ")
-            }
-
-        }
-        if (price) {
-            if (!isValid(price)) return res.status(400).send({ status: false, message: "Price should not be empty" })
-            price = price.trim().split(" ").filter(word => word).join(" ")
-        }
-        if (files) {
-            if (!isValid(files)) return res.status(400).send({ status: false, message: "productImage should not be empty" })
-        }
-        if (style) {
-            if (!/^[a-zA-Z0-9]/.test(style)) return res.status(400).send({ status: false, message: "style should be not empty" }) 
-        }
-
-        // check these key, value availabe in db or not
-
-        let isTitleUnique = await productModel.findOne({ title: title.trim() });
-        console.log(isTitleUnique)
-        if (isTitleUnique) return res.status(400).send({ status: false, message: "title is already available" });
-
-
-
-        let updatedData = await productModel.findOneAndUpdate({ _id: productId, isDeleted: false }, { $set: (data) }, { new: true });
-        res.status(200).send({ status: true, message: 'Success', data: updatedData });
-    } catch (error) {
-        return res.status(500).send({ status: false, message: error.message })
-
-    }
-}
 
 
 
@@ -359,4 +284,4 @@ const deleteProduct = async (req, res) => {
 }
 
 
-module.exports = { createProduct, getproduct, getProductById, updateProductById, deleteProduct }
+module.exports = { createProduct, getproduct, getProductById, deleteProduct }
