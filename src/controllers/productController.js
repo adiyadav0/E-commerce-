@@ -157,13 +157,12 @@ const updateProductById = async function (req, res) {
             if (!isValid(title)) {
                 return res.status(400).send({ status: false, message: "Title is required" })
             }
+            let titleCheck = await productModel.findOne({ title: title.trim().split(' ').filter(a => a).join(' ') })
+            if (titleCheck) {
+                return res.status(400).send({ status: false, message: 'Title already exists' })
+            }
+            updatedata.title = title.trim().split(' ').filter(a => a).join(' ')
         }
-
-        let titleCheck = await productModel.findOne({ title: title.trim().split(' ').filter(a => a).join(' ') })
-        if (titleCheck) {
-            return res.status(400).send({ status: false, message: 'Title already exists' })
-        }
-        updatedata.title = title.trim().split(' ').filter(a => a).join(' ')
 
         if ("description" in data) {
             if (!isValid(description)) {
@@ -171,7 +170,7 @@ const updateProductById = async function (req, res) {
             }
             updatedata.description = description.trim().split(' ').filter(a => a).join(' ')
         }
-        
+
 
         if ("price" in data) {
             if (!isValid(price)) {
@@ -179,9 +178,10 @@ const updateProductById = async function (req, res) {
             }
             if (!priceRegex.test(price)) {
                 return res.status(400).send({ status: false, message: "Please enter a valid Price" })
-            };
+            }
+            updatedata.price = price
         }
-        updatedata.price = price
+        
 
         if ("currencyId" in data) {
             if (!isValid(currencyId)) {
@@ -192,7 +192,7 @@ const updateProductById = async function (req, res) {
             }
             updatedata.currencyId = currencyId.trim()
         }
-       
+
 
         if ("currencyFormat" in data) {
             if (!isValid(currencyFormat)) {
@@ -215,9 +215,13 @@ const updateProductById = async function (req, res) {
             if (!isValid(installments)) {
                 return res.status(400).send({ status: false, message: "Installments is required" })
             }
-            if (!(/^[0-9]*$/.test(installments))) return res.status(400).send({ status: false, message: "Installment must be in Number" })
+            if (!(/^[0-9]*$/.test(installments))) 
+            {
+                return res.status(400).send({ status: false, message: "Installment must be in Number" })
+            }
+            updatedata.installments = installments
         }
-        updatedata.installments = installments
+        
 
 
         if (files && files.length > 0) {
@@ -230,9 +234,8 @@ const updateProductById = async function (req, res) {
                 return res.status(400).send({ status: false, message: "Please provide image only" })
             }
             var uploadedFileURL = await upload.uploadFile(files[0])
+            updatedata.productImage = uploadedFileURL
         }
-
-        updatedata.productImage = uploadedFileURL
 
         if ("availableSizes" in data) {
             if (!isValid(availableSizes)) {
@@ -247,8 +250,8 @@ const updateProductById = async function (req, res) {
                 }
             }
             let updatedSize = productFind.availableSizes
-                updatedSize.push(...sizeArr)
-                newSize = [...new Set(updatedSize)]
+            updatedSize.push(...sizeArr)
+            newSize = [...new Set(updatedSize)]
             updatedata.availableSizes = newSize
         }
 
@@ -260,9 +263,9 @@ const updateProductById = async function (req, res) {
             if (!((isFreeShipping === "true") || (isFreeShipping === "false"))) {
                 return res.status(400).send({ status: false, message: "isFreeShipping should be either True or False" })
             }
+            updatedata.isFreeShipping = isFreeShipping
         }
-        updatedata.isFreeShipping = isFreeShipping
-
+        
         let updateProduct = await productModel.findOneAndUpdate(
             { _id: productId },
             updatedata,
