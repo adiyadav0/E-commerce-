@@ -4,24 +4,24 @@ const productSchema = new mongoose.Schema(
     {
         title: {
             type: String,
-            reuired: true,
+           required: true,
             unique: true
         },
         description: {
             type: String,
-            reuired: true
+           required: true
         },
         price: {
             type: Number,
-            reuired: true           //  valid number/decimal
+           required: true           //  valid number/decimal
         },
         currencyId: {
             type: String,
-            reuired: true //INR
+           required: true //INR
         },
         currencyFormat: {
             type: String,
-            reuired: true //Rupee symbol
+           required: true //Rupee symbol
         },
         isFreeShipping: {
             type: Boolean,
@@ -29,7 +29,7 @@ const productSchema = new mongoose.Schema(
         },
         productImage: {
             type: String,
-            reuired: true    // s3 link
+           required: true    // s3 link
         },
         style: {
             type: String
