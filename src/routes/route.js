@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {authentication, authorization} = require('../middlewares/auth')
-const {createUser, userLogin,getUser, updateData} = require('../controllers/userController');
+const {createUser, userLogin,getUser, updateData} = require('../controllers/userController')
 const {createProduct,updateProductById} = require('../controllers/productController')
 
 router.post('/register', createUser)
@@ -11,7 +11,7 @@ router.put('/user/:userId/profile', authentication, authorization, updateData)
 
 //<---------------------------PORDUCET API---------------------->
 router.post('/products', createProduct)
-router.put('/products/:productId',updateProductById)
+router.put('/products/:productId', updateProductById)
 
 
 
