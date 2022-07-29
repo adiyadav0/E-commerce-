@@ -124,7 +124,7 @@ const createProduct = async function (req, res) {
         res.status(201).send({ status: true, message: "Product Created Successfully", data: productCreated })
     } catch (err) {
         res.status(500).send({ status: false, error: err.message });
-    }
+    }      
 }
 
 
@@ -151,7 +151,7 @@ const getproduct = async function (req, res) {
             if (Object.keys(name).length === 0) {
                 return res.status(400).send({ status: false, message: 'Name query is empty, either provide query value or deselect it.' })
             }
-            filter.title = { $regex: name, $options: "i" }
+            filter.title = { $regex: name, $options: "i" }     // $regex is used to filter the matching substrings, $options for upper and lower case both at once
         }
 
         if ("priceGreaterThan" in query) {
@@ -164,9 +164,7 @@ const getproduct = async function (req, res) {
             if (priceGreaterThan < 0) {
                 return res.status(400).send({ status: false, message: 'Price can not be less than zero' })
             }
-
-            filter.price = {}
-            filter.price['$gt'] = priceGreaterThan
+            filter.price = {$gt: priceGreaterThan}
         }
 
         if ("priceLessThan" in query) {
@@ -179,8 +177,7 @@ const getproduct = async function (req, res) {
             if (priceLessThan <= 0) {
                 return res.status(400).send({ status: false, message: 'Price can not be zero or less than zero' })
             }
-            filter.price = {}
-            filter.price['$lt'] = priceLessThan
+            filter.price = {$lt: priceLessThan}
         }
 
         if ("priceLessThan" in query && "priceGreaterThan" in query) {
@@ -188,7 +185,7 @@ const getproduct = async function (req, res) {
                 return res.status(400).send({ status: false, message: 'Please provide valid query for price' })
             }
             if (priceLessThan > priceGreaterThan) {
-                filter.price = {$gt: Number(priceGreaterThan), $lt: Number(priceLessThan)} 
+                filter.price = {$gt: priceGreaterThan, $lt: priceLessThan} 
             }
             if (priceLessThan < priceGreaterThan) {
                 return res.status(400).send({ status: false, message: 'Invalid filter for Price Range' })
@@ -218,7 +215,6 @@ const getproduct = async function (req, res) {
         return res.status(200).send({ status: true, message: 'Success', data: products })
     }
     catch (err) {
-        console.log(err)
         return res.status(500).send({ status: false, msg: err.message })
     }
 }
