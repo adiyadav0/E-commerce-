@@ -7,7 +7,7 @@ const userModel = require('../models/userModel');
 /*############################################ authentication ####################################################*/
 
 const authentication = async function (req, res, next) {
-    try { 
+    try {
         let token = req.header('Authorization');
         if (!token) {
             return res.status(401).send({ status: false, message: "login is required" })
@@ -15,6 +15,7 @@ const authentication = async function (req, res, next) {
 
         let splitToken = token.split(" ")
 
+        //----------------------------- Token Verification -----------------------------//
         jwt.verify(splitToken[1], "doneBy50", (error, decodedtoken) => {
             if (error) {
                 const message =
@@ -33,15 +34,21 @@ const authentication = async function (req, res, next) {
 /*############################################ authorization ####################################################*/
 
 let authorization = async function (req, res, next) {
-    try {      
+    try {
         let userId = req.params.userId;
-        if (!mongoose.isValidObjectId(userId))
-            return res.status(400).send({ status: false, message: "Please enter valid userId" })
 
+        //validation for given userId
+        if (!mongoose.isValidObjectId(userId)) {
+            return res.status(400).send({ status: false, message: "Please enter valid userId" })
+        }
+
+        //----------------------------- Checking if User exist or not -----------------------------//
         let user = await userModel.findOne({ _id: userId })
         if (!user) {
             return res.status(404).send({ status: false, message: "User does not exist with this userId" })
         }
+
+        //----------------------------- Authorisation checking -----------------------------//
         if (req.token != user._id) {
             return res.status(403).send({ status: false, message: "Unauthorised access" })
         }
