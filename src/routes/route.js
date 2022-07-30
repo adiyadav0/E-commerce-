@@ -5,11 +5,14 @@ const {createUser, userLogin, getUser, updateUser} = require('../controllers/use
 const {createProduct, getproduct, getProductById, updateProductById, deleteProduct} = require('../controllers/productController')
 
 
+//----------------------------- User's API -----------------------------//
 router.post('/register', createUser)
 router.post('/login', userLogin)
 router.get('/user/:userId/profile', authentication, authorization, getUser)
 router.put('/user/:userId/profile', authentication, authorization, updateUser)
 
+
+//----------------------------- Product's API -----------------------------//
 router.post('/products', createProduct)
 router.get('/products', getproduct)
 router.get('/products/:productId', getProductById)
