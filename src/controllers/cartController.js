@@ -3,7 +3,7 @@ const cartModel = require('../models/cartModel')
 const productModel = require('../models/productModel')
 
 
-/*############################################ Validations #######################################################*/
+/*############################################ Validations #####################################################*/
 
 const isValid = function (value) {
     if (typeof value === "undefined" || value === null) return false;
@@ -69,8 +69,8 @@ const createCart = async function (req, res) {
             // now we need to add item
             if (index >= 0) {
                 cart.items[index].quantity = cart.items[index].quantity + quantity
-             }
-             else {
+            }
+            else {
                 cart.items.push({ productId, quantity }) //push the another item added and will be added in total item
             }
             cart.totalPrice = cart.totalPrice + (product.price * quantity)
@@ -107,11 +107,11 @@ const getCart = async function (req, res) {
         let userId = req.params.userId
 
         //----------------------------- Getting cart Detail -----------------------------//
-        const getCart = await cartModel.findOne({ userId: userId })
-        if (!getCart) {
+        const cart = await cartModel.findOne({ userId: userId })
+        if (!cart) {
             return res.status(404).send({ status: false, message: "cart not found" })
         }
-        res.status(200).send({ status: true, message: "Find your cart details below: ", data: getCart });
+        res.status(200).send({ status: true, message: "Find your cart details below: ", data: cart });
     }
     catch (err) {
         res.status(500).send({ status: false, message: err.message })
@@ -120,4 +120,26 @@ const getCart = async function (req, res) {
 
 
 
-module.exports = { getCart, createCart }
+/*########################################## 13. Delete Cart ####################################################*/
+
+
+const deleteCart = async function (req, res) {
+    try {
+        const userId = req.params.userId
+
+        //----------------------------- Deleting cart  -----------------------------//
+        const cart = await cartModel.findOneAndUpdate({ userId: userId }, { items: [], totalItems: 0, totalPrice: 0 }, { new: true })
+
+        if (!cart) {
+            return res.status(404).send({ status: false, message: "cart not found" })
+        }
+        return res.status(204).send({ status: true, message: "deleted successfully", data: cart })
+    } 
+    catch (err) {
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
+
+
+module.exports = { getCart, createCart, deleteCart }
