@@ -62,9 +62,9 @@ const createProduct = async function (req, res) {
 
         //----------------------------- Validating Product Image -----------------------------//
         if (files && files.length > 0) {
-            let check = files[0].mimetype.split("/")
+            let check = files[0].originalname.split(".")
             const extension = ["png", "jpg", "jpeg", "webp"]
-            if (extension.indexOf(check[1]) == -1) {
+            if (extension.indexOf(check[check.length - 1]) == -1) {
                 return res.status(400).send({ status: false, message: "Please provide image only" })
             }
         } else {
@@ -260,7 +260,7 @@ const getProductById = async function (req, res) {
         }
 
         //----------------------------- Getting Product Detail -----------------------------//
-        const productData = await productModel.findOne({ _id: productId, isdeleted: false })
+        const productData = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!productData) {
             return res.status(404).send({ status: false, message: "Product not found" })
         }
