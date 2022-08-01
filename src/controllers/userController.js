@@ -25,7 +25,7 @@ const isValidBody = function (data) {
 };
 
 
-/*############################################ createUser #######################################################*/
+/*############################################ 1. Create User ###################################################*/
 
 const createUser = async function (req, res) {
     try {
@@ -201,7 +201,7 @@ const createUser = async function (req, res) {
 
 
 
-/*############################################ userLogin ########################################################*/
+/*############################################ 2.User Login #####################################################*/
 
 const userLogin = async function (req, res) {
     try {
@@ -310,6 +310,11 @@ const updateUser = async function (req, res) {
 
         //----------------------------- Updating Profile Image -----------------------------//
         if (files && files.length != 0) {
+            let check = files[0].originalname.split(".")
+            const extension = ["png", "jpg", "jpeg", "webp"]
+            if (extension.indexOf(check[check.length - 1]) == -1) {
+                return res.status(400).send({ status: false, message: "Please provide image only" })
+            }
             let uploadedFileURL = await upload.uploadFile(files[0])
             checkUser.profileImage = uploadedFileURL
         }
