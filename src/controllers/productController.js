@@ -1,6 +1,7 @@
 const productModel = require('../models/productModel')
 const upload = require('../.aws/config')
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+
 
 
 /*############################################ Validations #######################################################*/
@@ -280,7 +281,6 @@ const updateProductById = async function (req, res) {
         let productId = req.params.productId
         let data = req.body
         let files = req.files
-
         const updatedata = {};
 
         //validation for given productId
