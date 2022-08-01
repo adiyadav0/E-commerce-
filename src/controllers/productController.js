@@ -147,7 +147,6 @@ const getproduct = async function (req, res) {
                 return res.status(400).send({ status: false, message: 'Size query is empty, either provide query value or deselect it.' })
             }
             let asize = size.toUpperCase().split(",")
-            console.log(asize)
             filter.availableSizes = asize[0]
         }
         if ("name" in query) {
@@ -205,7 +204,6 @@ const getproduct = async function (req, res) {
             }
 
             const products = await productModel.find(filter).sort({ price: priceSort })
-            console.log(products)
             if (products.length === 0) {
                 return res.status(404).send({ productStatus: false, message: 'No Product found' })
             }
@@ -235,7 +233,7 @@ const getProductById = async function (req, res) {
             return res.status(400).send({ status: false, message: "please enter valid productId" })
         }
 
-        const productData = await productModel.findOne({ _id: productId, isdeleted: false })
+        const productData = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!productData) {
             return res.status(404).send({ status: false, message: "Product not found" })
         }
@@ -255,7 +253,6 @@ const updateProductById = async function (req, res) {
         let productId = req.params.productId
         let data = req.body
         let files = req.files
-        // console.log(files)
         const updatedata = {};
 
         if (!mongoose.isValidObjectId(productId)) {
