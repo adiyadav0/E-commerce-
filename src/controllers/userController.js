@@ -302,21 +302,22 @@ const updateUser = async function (req, res) {
             checkUser.profileImage = uploadedFileURL
         }
 
-        if (fname) {
-            if (!isValid(fname) || !NameRegex.test(fname)) {
+        if ("fname" in data) {
+            if (!isValid(fname) || !NameRegex.test(fname.trim())) {
                 return res.status(400).send({ status: false, message: "first name is not Valid" })
             }
             checkUser.fname = fname.trim()
         }
 
-        if (lname) {
-            if (!isValid(lname) || !NameRegex.test(lname)) {
+        if ("lname" in data) {
+            if (!isValid(lname) || !NameRegex.test(lname.trim())) {
                 return res.status(400).send({ status: false, message: "last name is not Valid" })
-            } checkUser.lname = lname.trim()
+            } 
+            checkUser.lname = lname.trim()
         }
 
-        if (email) {
-            if (!isValid(email) || !emailRegex.test(email)) {
+        if ("email" in data) {
+            if (!isValid(email) || !emailRegex.test(email.trim())) {
                 return res.status(400).send({ status: false, message: "email is not Valid" })
             }
             let uniqueEmail = await userModel.findOne({ email: email.trim() })
@@ -326,21 +327,21 @@ const updateUser = async function (req, res) {
         }
 
 
-        if (phone) {
-            if (!isValid(phone) || !phoneRegex.test(phone)) {
+        if ("phone" in data) {
+            if (!isValid(phone) || !phoneRegex.test(phone.trim())) {
                 return res.status(400).send({ status: false, message: "Phone no is not Valid" })
             }
-            let uniquePhone = await userModel.findOne({ phone: phone })
+            let uniquePhone = await userModel.findOne({ phone: phone.trim() })
             if (uniquePhone) {
                 return res.status(409).send({ status: false, message: "This phone number already exists, Please try another one." })
-            } checkUser.phone = phone
+            } checkUser.phone = phone.trim()
         }
 
         //--------------------------------UPDATING BCRYPTED PASSWORD------------------------------------------//
-        if (password) {
-            if (passwordRegex.test(password)) {
+        if ("password" in data) {
+            if (passwordRegex.test(password.trim())) {
                 let saltRounds = await bcrypt.genSalt(10)
-                password = await bcrypt.hash(password, saltRounds)
+                password = await bcrypt.hash(password.trim(), saltRounds)
             }
             else {
                 return res.status(400).send({ status: false, message: "password should be strong please use One digit, one upper case , one lower case ,one special character, its b/w 8 to 15" })
@@ -349,7 +350,7 @@ const updateUser = async function (req, res) {
         }
 
         //------------------------------ADDRESS VALIDATION FOR UPDATING---------------------------------------//
-        if (address) {
+        if ("address" in data) {
             try {
                 var parseAddress = JSON.parse(address)
             }
