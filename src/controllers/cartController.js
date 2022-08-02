@@ -15,9 +15,6 @@ const isValidBody = function (data) {
     return Object.keys(data).length > 0;
 };
 
-//.....................................Put API...................//
-
- 
 
 /*########################################## 10. create Cart ####################################################*/
 
@@ -215,8 +212,8 @@ const updateCart = async function( req, res){
             }
           }
         }
-       
-        }catch(error){
+        }
+        catch(error){
         return res.status(500).send({ status: false, message: error.message })
     }
 }
@@ -231,7 +228,7 @@ const deleteCart = async function (req, res) {
         const userId = req.params.userId
 
         //----------------------------- Deleting cart  -----------------------------//
-        const cart = await cartModel.findOneAndUpdate({ userId: userId }, { items: [], totalItems: 0, totalPrice: 0 }, { new: true })
+        const cart = await cartModel.findOneAndUpdate({ userId: userId }, { items: [], totalItems: 0, totalPrice: 0 }, { returnDocument: "after" })
 
         if (!cart) {
             return res.status(404).send({ status: false, message: "cart not found" })
