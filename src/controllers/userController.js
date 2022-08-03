@@ -360,7 +360,7 @@ const updateUser = async function (req, res) {
         if ("password" in data) {
             if (passwordRegex.test(password)) {
                 let saltRounds = await bcrypt.genSalt(10)
-                password = await bcrypt.hash(password, saltRounds)
+                password = await bcrypt.hash(password.trim(), saltRounds)
             }
             else {
                 return res.status(400).send({ status: false, message: "password should be strong please use One digit, one upper case , one lower case ,one special character, it between 8 to 15" })
