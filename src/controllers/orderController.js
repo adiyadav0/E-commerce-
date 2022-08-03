@@ -1,4 +1,4 @@
-const { default: mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 const cartModel = require('../models/cartModel');
 const orderModel = require('../models/orderModel');
 const userModel = require('../models/userModel');
@@ -24,15 +24,6 @@ const createOrder = async (req, res) => {
         let userId = req.params.userId
         let data = req.body
         let { cartId, cancellable, status } = data
-
-        if (!mongoose.isValidObjectId(userId)) {
-            return res.status(400).send({ status: false, message: "userId is invalid!" })
-        }
-
-        const isUserExists = await userModel.findById(userId)
-        if (!isUserExists) {
-            return res.status(404).send({ status: false, message: "user not found" })
-        }
 
         if (!isValidBody(data)) {
             return res.status(400).send({ status: false, message: "Please provide cartId, Cancellable and Status" })
