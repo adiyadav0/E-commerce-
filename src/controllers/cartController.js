@@ -201,7 +201,7 @@ const updateCart = async function( req, res){
                     let updatedItems = cart.items.length
                 
                     let updatedCart = await cartModel.findByIdAndUpdate({_id: cartId},{items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems},
-                        {returnDocument: "after"})
+                        {returnDocument: "after"}).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                         return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})   
                 }
             }
@@ -218,7 +218,7 @@ const updateCart = async function( req, res){
                     let updatedItems = cart.items.length
 
                     let updatedCart = await cartModel.findByIdAndUpdate({_id: cartId},{items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems},
-                        {returnDocument: "after"})
+                        {returnDocument: "after"}).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                     return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})  
                     }
                 else{
@@ -226,7 +226,7 @@ const updateCart = async function( req, res){
                         
                         let updatedPrice = cart.totalPrice-(product.price)
                         let updatedCart = await cartModel.findByIdAndUpdate({_id: cartId},{items: cart.items, totalPrice: updatedPrice},
-                            {returnDocument: "after"})
+                            {returnDocument: "after"}).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                         return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})  
 
                     }
@@ -263,4 +263,4 @@ const deleteCart = async function (req, res) {
 
 
 
-module.exports = { getCart, createCart, deleteCart }
+module.exports = { createCart, updateCart,  getCart, deleteCart }

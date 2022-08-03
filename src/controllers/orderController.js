@@ -60,13 +60,10 @@ const createOrder = async (req, res) => {
         }
 
         if ("cancellable" in data) {
-            if (!isValid(cancellable)) {
+            if (typeof cancellable !="boolean") {
                 return res.status(400).send({ status: false, message: "Please enter cancellable as true or false or remove the key for default" });
             }
 
-            if (!['true', 'false'].includes(cancellable)) {
-                return res.status(400).send({ status: false, message: "Cancellable must be a Boolean Value" });
-            }
             newData.cancellable = cancellable
         }
 
@@ -80,7 +77,9 @@ const createOrder = async (req, res) => {
             newData.status = status
         }
 
-        const orderCreated = await orderModel.create(newData)
+        let createdOrder = await orderModel.create(newData)
+        
+        let output = await orderModel.findById({_id: createdOrder._id}).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
 
         await cartModel.findByIdAndUpdate(
             { _id: cartId },
@@ -91,7 +90,7 @@ const createOrder = async (req, res) => {
             },
             { returnDocument: "after" })
 
-        return res.status(201).send({ status: false, message: "Order Placed!!", data: orderCreated });
+        return res.status(201).send({ status: false, message: "Order Placed!!", data: output });
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });
     }
@@ -138,7 +137,8 @@ const updateOrder = async function (req, res) {
                 { _id: orderId },
                 filterData,
                 { returnDocument: "after" }
-            )
+           ).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
+           
             return res.status(200).send({ status: true, message: "successfully updated the order status", data: updatedStatus })
         }
         else {
