@@ -166,8 +166,9 @@ const updateCart = async function( req, res){
                 return res.status(400).send({status: false, message:"Cart is empty"})
          }
             if(removeProduct==0) {
-                for( let i=0; i<cart.items.length; i++) {
-                    if(cart.items[i].productId==productId){
+                for(var i = 0; i < cart.items.length; i++) {
+                    console.log(cart.items[i].quantity)
+                    if(cart.items[i].productId == productId){
                     let quantityPrice = cart.items[i].quantity*product.price
                     let updatedPrice = cart.totalPrice-quantityPrice
                     cart.items.splice(i,1)
@@ -178,10 +179,11 @@ const updateCart = async function( req, res){
                         return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})   
                     
                 }
-                else{
-                    return res.status(400).send({status: false, message:"cart does not have this product"})
-                }
+                // else{
+                //     return res.status(400).send({status: false, message:"cart does not have this product"})
+                // }
             }
+            //console.log(cart.items[i].quantity)
          }
             if(removeProduct ==1){
                 for( let i=0; i<cart.items.length; i++) {
@@ -195,7 +197,7 @@ const updateCart = async function( req, res){
 
                     let updatedCart = await cartModel.findByIdAndUpdate({_id: cartId},{items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems},
                         {returnDocument: "after"})
-                    return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})  
+                    return res.status(200).send({status: true, message:"Updated successfully !!!", data: updatedCart})  
                     }
                 else{
                         cart.items[i].quantity -= 1
