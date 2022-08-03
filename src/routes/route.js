@@ -25,15 +25,15 @@ router.delete('/products/:productId', deleteProduct)
 
 //----------------------------- Cart's API -----------------------------//
 
-router.post('/users/:userId/cart', authentication, authorization, createCart)
-router.put('/users/:userId/cart', authentication, authorization, updateCart)
-router.get('/users/:userId/cart', authentication, authorization, getCart)
-router.delete('/users/:userId/cart', authentication, authorization, deleteCart)
+router.post('/users/:userId/cart',  createCart)
+router.put('/users/:userId/cart',  updateCart)
+router.get('/users/:userId/cart',  getCart)
+router.delete('/users/:userId/cart',  deleteCart)
 
 //----------------------------- Order's API -----------------------------//
 
-router.post('/users/:userId/orders', authentication, authorization, createOrder)
-router.put('/users/:userId/orders', authentication, authorization, updateOrder)
+router.post('/users/:userId/orders',  createOrder)
+router.put('/users/:userId/orders',  updateOrder)
 
 
 

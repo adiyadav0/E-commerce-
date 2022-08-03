@@ -8,19 +8,19 @@ const cartSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-        items: [{
-            productId: {
-                type: ObjectId,
-                ref: 'product',
-                required: true
-            },
-            quantity: {
-                type: Number,
-                minLen: 1,
-                required: true
-            },
-            _id:false
-        }],
+    items: [{
+        productId: {
+            type: ObjectId,
+            ref: 'product',
+            required: true
+        },
+        quantity: {
+            type: Number,
+            minLen: 1,
+            required: true
+        },
+        _id: false
+    }],
     totalPrice: {
         type: Number,
         required: true            //comment: "Holds total price of all the items in the cart"
