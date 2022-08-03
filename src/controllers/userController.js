@@ -96,7 +96,7 @@ const createUser = async function (req, res) {
         //----------------------------- Validating Address -----------------------------//
         if (address) {
             try {
-                var parseAddress = JSON.parse(req.body.address)
+                var parseAddress = JSON.parse(address)
             }
             catch (error) {
                 return res.status(400).send({ status: false, message: "Pincode should not start from 0 or Address should be in Object form" })
@@ -371,7 +371,7 @@ const updateUser = async function (req, res) {
         //----------------------------- Updating Address -----------------------------//
         if ("address" in data) {
             try {
-                var parseAddress = JSON.parse(req.body.address)
+                var parseAddress = JSON.parse(address)
             }
             catch (error) {
                 return res.status(400).send({ status: false, message: "Pincode should not start from 0 or Address should be in Object form" })
