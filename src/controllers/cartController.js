@@ -143,9 +143,9 @@ const updateCart = async function( req, res){
         if(!mongoose.isValidObjectId(cartId)){
             return res.status(400).send({status: false, message:"Invalid cart Id"})
         }
-        let cart = await cartModel.findById(cartId)
+        let cart = await cartModel.findOne({_id:cartId, "items.productId": productId})
             if(!cart){
-                return res.status(400).send({status: false, message:"cart not found"})
+                return res.status(400).send({status: false, message:"cart not found with given product id"})
          }
 
             if(cart.userId!= userId){
@@ -162,28 +162,27 @@ const updateCart = async function( req, res){
                 return res.status(400).send({status: false, message:"Please provide removeProduct as 1 to delete particular quantity of given product and 0 to delete the product itself"})
          }
 
+
             if(cart.totalPrice == 0 && cart.totalItems==0){
                 return res.status(400).send({status: false, message:"Cart is empty"})
          }
             if(removeProduct==0) {
-                for( let i=0; i<cart.items.length; i++) {
-                    if(cart.items[i].productId==productId){
+
+                for( var i=0; i<cart.items.length; i++) {
+                    if(cart.items[i].productId == productId){
                     let quantityPrice = cart.items[i].quantity*product.price
                     let updatedPrice = cart.totalPrice-quantityPrice
                     cart.items.splice(i,1)
                     let updatedItems = cart.items.length
-
+                
                     let updatedCart = await cartModel.findByIdAndUpdate({_id: cartId},{items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems},
                         {returnDocument: "after"})
                         return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})   
-                    
-                }
-                else{
-                    return res.status(400).send({status: false, message:"cart does not have this product"})
                 }
             }
-         }
-            if(removeProduct ==1){
+        }
+
+        if(removeProduct ==1){
                 for( let i=0; i<cart.items.length; i++) {
                     if(cart.items[i].productId==productId){
                 
@@ -206,9 +205,6 @@ const updateCart = async function( req, res){
                         return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})  
 
                     }
-            }
-            else{
-                return res.status(400).send({status: false, message:"cart does not have this product"})
             }
           }
         }
