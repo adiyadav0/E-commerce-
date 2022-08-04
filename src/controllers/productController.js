@@ -305,6 +305,14 @@ const getproduct = async function (req, res) {
         const { size, name, priceGreaterThan, priceLessThan, priceSort } = query;
         let filter = { isDeleted: false }
 
+
+        let k = Object.keys(query)
+        let b = ["size", "name", "priceGreaterThan", "priceLessThan", "priceSort"]
+
+        if(!(k.every(r => b.includes(r)))){
+            return res.status(400).send({ status: false, message: "Please provide valid filter name only" })
+          }
+
         //----------------------------- Getting size filter -----------------------------//
         if ("size" in query) {
             if (Object.keys(size).length === 0) {
