@@ -305,8 +305,10 @@ const getproduct = async function (req, res) {
         const { size, name, priceGreaterThan, priceLessThan, priceSort } = query;
         let filter = { isDeleted: false }
 
+       
         //----------------------------- Getting size filter -----------------------------//
         if ("size" in query) {
+
             if (Object.keys(size).length === 0) {
                 return res.status(400).send({ status: false, message: 'Size query is empty, either provide query value or deselect it.' })
             }
