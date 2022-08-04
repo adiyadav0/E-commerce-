@@ -71,8 +71,8 @@ const createOrder = async (req, res) => {
             if (!isValid(status)) {
                 return res.status(400).send({ status: false, message: "Please enter status" });
             }
-            if (!["pending", "completed", "cancelled"].includes(status)) {
-                return res.status(400).send({ status: false, message: "Status must be a pending, completed, cancelled" });
+            if (!["pending", "completed"].includes(status)) {
+                return res.status(400).send({ status: false, message: "Status must be pending or completed while creating order" });
             }
             newData.status = status
         }
@@ -102,7 +102,7 @@ const createOrder = async (req, res) => {
 const updateOrder = async function (req, res) {
     try {
         const userId = req.params.userId
-        const { orderId } = req.body
+        const { orderId, status } = req.body
 
         if (!mongoose.isValidObjectId(userId)) {
             return res.status(400).send({ status: false, message: 'invalid userid!!' })
@@ -125,13 +125,23 @@ const updateOrder = async function (req, res) {
             return res.status(404).send({ status: false, message: 'order not found' })
         }
 
+
+            if (!isValid(status)) {
+                return res.status(400).send({ status: false, message: "Please enter status" });
+            }
+
+            if (!["completed", "cancelled"].includes(status)) {
+                return res.status(400).send({ status: false, message: "Status must be 'cancelled' or 'completed' while updating order" });
+            }
+
+            if(order.status == "cancelled" || order.status == "completed"){
+                return res.status(400).send({ status: false, message: "Order in cancelled state or completed state cannot be updated" });
+            } 
+        
+
         if (order.cancellable == true) {
 
-            let filterData = {}
-
-            filterData.isDeleted = true
-            filterData.deletedAt = Date.now()
-            filterData.status = 'cancelled'
+            let filterData = {status : status }
 
             const updatedStatus = await orderModel.findByIdAndUpdate(
                 { _id: orderId },
