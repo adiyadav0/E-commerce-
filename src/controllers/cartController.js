@@ -157,7 +157,10 @@ const updateCart = async function (req, res) {
             cartId,
             removeProduct
         } = updateData
-
+        
+        if (!isValidBody(updateData)) {
+            return res.status(400).send({ status: false, message: ' Post Body is empty, Please add some key-value pairs' })
+        }
         if (!isValid(productId)) {
             return res.status(400).send({ status: false, message: "ProductId can not be empty" })
         }

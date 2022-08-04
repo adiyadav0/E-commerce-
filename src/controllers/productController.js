@@ -304,8 +304,11 @@ const getproduct = async function (req, res) {
         let query = req.query;
         const { size, name, priceGreaterThan, priceLessThan, priceSort } = query;
         let filter = { isDeleted: false }
+        
+
 
         //----------------------------- Getting size filter -----------------------------//
+
         if ("size" in query) {
             if (Object.keys(size).length === 0) {
                 return res.status(400).send({ status: false, message: 'Size query is empty, either provide query value or deselect it.' })
@@ -386,13 +389,16 @@ const getproduct = async function (req, res) {
             return res.status(200).send({ status: true, message: 'Sorted Data', data: products })
         }
 
+
         //----------------------------- Getting All combination filter -----------------------------//
         const products = await productModel.find(filter)
         if (products.length === 0) {
             return res.status(404).send({ productStatus: false, message: 'No Product found with matching query' })
         }
         return res.status(200).send({ status: true, message: 'Success', data: products })
-    }
+    
+    
+}
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message })
     }
