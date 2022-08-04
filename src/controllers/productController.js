@@ -121,7 +121,7 @@ const createProduct = async function (req, res) {
 
         const productData = {}
 
-            productData.title = title.trim().split(' ').filter(a => a).join(' '),
+        productData.title = title.trim().split(' ').filter(a => a).join(' '),
             productData.description = description.trim().split(' ').filter(a => a).join(' '),
             productData.price = price,
             productData.currencyId = "INR",
@@ -172,6 +172,15 @@ const updateProductById = async function (req, res) {
         }
 
         let { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments } = data
+
+        //first store all the keys of query in k and then compare with the valid filters stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['title', 'description', 'price', 'currencyId', 'currencyFormat', 'isFreeShipping', 'style', 'availableSizes', 'installments']
+
+        //if keys of provided query do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid key name " })
+        }
 
         //----------------------------- Updating title -----------------------------//
         if ("title" in data) {
@@ -304,16 +313,15 @@ const getproduct = async function (req, res) {
         let query = req.query;
         const { size, name, priceGreaterThan, priceLessThan, priceSort } = query;
         let filter = { isDeleted: false }
-        
 
-
-
+        //first store all the keys of query in k and then compare with the valid filters stored in another veriable named b
         let k = Object.keys(query)
         let b = ["size", "name", "priceGreaterThan", "priceLessThan", "priceSort"]
 
-        if(!(k.every(r => b.includes(r)))){
-            return res.status(400).send({ status: false, message: "Please provide valid filter name only" })
-          }
+        //if keys of provided query do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid filter name as 'size, name, priceGreaterThan, priceLessThan, priceSort' only" })
+        }
 
         //----------------------------- Getting size filter -----------------------------//
 
@@ -397,16 +405,13 @@ const getproduct = async function (req, res) {
             return res.status(200).send({ status: true, message: 'Sorted Data', data: products })
         }
 
-
         //----------------------------- Getting All combination filter -----------------------------//
         const products = await productModel.find(filter)
         if (products.length === 0) {
             return res.status(404).send({ productStatus: false, message: 'No Product found with matching query' })
         }
         return res.status(200).send({ status: true, message: 'Success', data: products })
-    
-    
-}
+    }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message })
     }

@@ -157,7 +157,7 @@ const updateCart = async function (req, res) {
             cartId,
             removeProduct
         } = updateData
-        
+
         if (!isValidBody(updateData)) {
             return res.status(400).send({ status: false, message: ' Post Body is empty, Please add some key-value pairs' })
         }
@@ -168,16 +168,28 @@ const updateCart = async function (req, res) {
             return res.status(400).send({ status: false, message: "Invalid Product Id" })
         }
 
-        if (!mongoose.isValidObjectId(cartId)) {
-            return res.status(400).send({ status: false, message: "Invalid cart Id" })
-        }
-        let cart = await cartModel.findOne({ _id: cartId, "items.productId": productId })
+        
+        // if (!mongoose.isValidObjectId(cartId)) {
+        //     return res.status(400).send({ status: false, message: "Invalid cart Id" })
+        // }
+        let cart = await cartModel.findOne({ userId, "items.productId": productId })
+        console.log(cart)
         if (!cart) {
             return res.status(400).send({ status: false, message: "cart not found with given product id" })
         }
 
-        if (cart.userId != userId) {
-            return res.status(400).send({ status: false, message: "this cart doesn't belong to this user" })
+        // if (cart.userId != userId) {
+        //     return res.status(400).send({ status: false, message: "this cart doesn't belong to this user" })
+        // }
+        if ("cartId" in updateData) {
+            if (!mongoose.isValidObjectId(cartId)) {
+                return res.status(400).send({ status: false, message: " Invalid cartId !" })
+            }
+
+            // check both cartid's from req.body and db cart are match or not?
+            if (cart._id != cartId) {
+                return res.status(400).send({ status: false, message: " CartId doesn't belong to this user!" })
+            }
         }
 
         let product = await productModel.findOne({ _id: productId, isDeleted: false })
@@ -203,7 +215,7 @@ const updateCart = async function (req, res) {
                     cart.items.splice(i, 1)
                     let updatedItems = cart.items.length
 
-                    let updatedCart = await cartModel.findByIdAndUpdate({ _id: cartId }, { items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems },
+                    let updatedCart = await cartModel.findOneAndUpdate({ userId }, { items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems },
                         { returnDocument: "after" }).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                     return res.status(200).send({ status: true, message: "Updated successfully", data: updatedCart })
                 }
@@ -220,7 +232,7 @@ const updateCart = async function (req, res) {
                         cart.items.splice(i, 1)
                         let updatedItems = cart.items.length
 
-                        let updatedCart = await cartModel.findByIdAndUpdate({ _id: cartId }, { items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems },
+                        let updatedCart = await cartModel.findOneAndUpdate({ userId }, { items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems },
                             { returnDocument: "after" }).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                         return res.status(200).send({ status: true, message: "Updated successfully", data: updatedCart })
                     }
@@ -228,7 +240,7 @@ const updateCart = async function (req, res) {
                         cart.items[i].quantity -= 1
 
                         let updatedPrice = cart.totalPrice - (product.price)
-                        let updatedCart = await cartModel.findByIdAndUpdate({ _id: cartId }, { items: cart.items, totalPrice: updatedPrice },
+                        let updatedCart = await cartModel.findOneAndUpdate({ userId }, { items: cart.items, totalPrice: updatedPrice },
                             { returnDocument: "after" }).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                         return res.status(200).send({ status: true, message: "Updated successfully", data: updatedCart })
 
@@ -238,6 +250,7 @@ const updateCart = async function (req, res) {
         }
     }
     catch (error) {
+        console.log(error)
         return res.status(500).send({ status: false, message: error.message })
     }
 }
