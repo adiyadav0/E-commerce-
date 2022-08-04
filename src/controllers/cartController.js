@@ -157,6 +157,10 @@ const updateCart = async function( req, res){
             cartId,
             removeProduct
         } = updateData
+        
+        if (!isValidBody(updateData)) {
+            return res.status(400).send({ status: false, message: ' Post Body is empty, Please add some key-value pairs' })
+        }
 
         if(!isValid(productId)){
             return res.status(400).send({status: false, message:"ProductId can not be empty"})
@@ -213,7 +217,7 @@ const updateCart = async function( req, res){
                 
                     if(cart.items[i].quantity ===1){
         
-                    let updatedPrice = cart.totalPrice-(product.price)
+                    let updatedPrice = cart.totalPrice - (product.price)
                     cart.items.splice(i,1)
                     let updatedItems = cart.items.length
 
@@ -224,7 +228,7 @@ const updateCart = async function( req, res){
                 else{
                         cart.items[i].quantity -= 1
                         
-                        let updatedPrice = cart.totalPrice-(product.price)
+                        let updatedPrice = cart.totalPrice - (product.price)
                         let updatedCart = await cartModel.findByIdAndUpdate({_id: cartId},{items: cart.items, totalPrice: updatedPrice},
                             {returnDocument: "after"}).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
                         return res.status(200).send({status: true, message:"Updated successfully", data: updatedCart})  
