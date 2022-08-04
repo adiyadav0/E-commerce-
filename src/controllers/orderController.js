@@ -72,7 +72,7 @@ const createOrder = async (req, res) => {
                 return res.status(400).send({ status: false, message: "Please enter status" });
             }
             if (!["pending", "completed"].includes(status)) {
-                return res.status(400).send({ status: false, message: "Status must be pending or completed while creating order" });
+                return res.status(400).send({ status: false, message: "Status must be pending or completed while creating order or remove the key for default" });
             }
             newData.status = status
         }
@@ -135,7 +135,7 @@ const updateOrder = async function (req, res) {
             }
 
             if(order.status == "cancelled" || order.status == "completed"){
-                return res.status(400).send({ status: false, message: "Order in cancelled state or completed state cannot be updated" });
+                return res.status(400).send({ status: false, message: "Order is already 'cancelled' or 'completed' " });
             } 
         
 
