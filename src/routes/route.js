@@ -3,7 +3,7 @@ const router = express.Router();
 const { authentication, authorization } = require('../middlewares/auth')
 const { createUser, userLogin, getUser, updateUser } = require('../controllers/userController')
 const { createProduct, getproduct, getProductById, updateProductById, deleteProduct } = require('../controllers/productController');
-const { createCart,updateCart, getCart, deleteCart } = require('../controllers/cartController');
+const { createCart, updateCart, getCart, deleteCart } = require('../controllers/cartController');
 const { createOrder, updateOrder } = require("../controllers/orderController")
 
 
@@ -24,15 +24,15 @@ router.delete('/products/:productId', deleteProduct)
 
 //----------------------------- Cart's API -----------------------------//
 
-router.post('/users/:userId/cart',authentication,authorization,  createCart)
-router.put('/users/:userId/cart',authentication,authorization,  updateCart)
-router.get('/users/:userId/cart',authentication,authorization,  getCart)
-router.delete('/users/:userId/cart',authentication,authorization,  deleteCart)
+router.post('/users/:userId/cart', authentication, authorization, createCart)
+router.put('/users/:userId/cart', authentication, authorization, updateCart)
+router.get('/users/:userId/cart', authentication, authorization, getCart)
+router.delete('/users/:userId/cart', authentication, authorization, deleteCart)
 
 //----------------------------- Order's API -----------------------------//
 
-router.post('/users/:userId/orders',authentication,authorization,  createOrder)
-router.put('/users/:userId/orders',authentication,authorization,  updateOrder)
+router.post('/users/:userId/orders', authentication, authorization, createOrder)
+router.put('/users/:userId/orders', authentication, authorization, updateOrder)
 
 
 //----------------------------- For invalid end URL -----------------------------//
