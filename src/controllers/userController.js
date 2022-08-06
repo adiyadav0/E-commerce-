@@ -4,7 +4,7 @@ const upload = require('../.aws/config')
 const jwt = require('jsonwebtoken');
 
 
-/*############################################ Validations ########################################################*/
+/*############################################ Validations #######################################################*/
 
 let NameRegex = /^[a-zA-Z\.]+$/
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
@@ -287,8 +287,6 @@ const getUser = async function (req, res) {
 
 /*############################################ 4. Update User ###################################################*/
 
-
-
 const updateUser = async function (req, res) {
     try {
         let userId = req.params.userId
@@ -323,8 +321,7 @@ const updateUser = async function (req, res) {
         if ("fname" in data) {
             if (!isValid(fname) || !NameRegex.test(fname.trim())) {
                 return res.status(400).send({ status: false, message: "first name should contain alphabetic character only" })
-            }
-            checkUser.fname = fname.trim()
+            } checkUser.fname = fname.trim()
         }
 
         //----------------------------- Updating lname -----------------------------//
@@ -382,9 +379,8 @@ const updateUser = async function (req, res) {
                 if (parseAddress.shipping.street) {
                     if (!addressStreetRegex.test(parseAddress.shipping.street)) {
                         return res.status(400).send({ status: false, message: "Invalid Shipping street" })
-                    }
+                    } checkUser.address.shipping.street = parseAddress.shipping.street.trim().split(' ').filter(a => a).join(' ')
                 }
-                checkUser.address.shipping.street = parseAddress.shipping.street.trim().split(' ').filter(a => a).join(' ')
 
                 if (parseAddress.shipping.city) {
                     if (!addressCityRegex.test(parseAddress.shipping.city)) {
@@ -432,4 +428,4 @@ const updateUser = async function (req, res) {
 
 
 
-module.exports = { createUser, userLogin, updateUser, getUser }
+module.exports = { createUser, userLogin, getUser, updateUser }

@@ -3,7 +3,6 @@ const upload = require('../.aws/config')
 const mongoose = require('mongoose');
 
 
-
 /*############################################ Validations #######################################################*/
 
 const priceRegex = /^(?:0|[1-9]\d*)(?:\.(?!.*000)\d+)?$/
@@ -121,7 +120,7 @@ const createProduct = async function (req, res) {
 
         const productData = {}
 
-        productData.title = title.trim().split(' ').filter(a => a).join(' '),
+            productData.title = title.trim().split(' ').filter(a => a).join(' '),
             productData.description = description.trim().split(' ').filter(a => a).join(' '),
             productData.price = price,
             productData.currencyId = "INR",
@@ -134,12 +133,151 @@ const createProduct = async function (req, res) {
             productData.deletedAt = null,
             productData.isDeleted = false
 
-        //----------------------------- Creating User Data -----------------------------//
+        //----------------------------- Creating product Data -----------------------------//
         const productCreated = await productModel.create(productData)
         res.status(201).send({ status: true, message: "Product Created Successfully", data: productCreated })
     }
     catch (err) {
         res.status(500).send({ status: false, error: err.message });
+    }
+}
+
+
+
+
+/*############################################ 6. Get product #################################################*/
+
+const getproduct = async function (req, res) {
+    try {
+        let query = req.query;
+        const { size, name, priceGreaterThan, priceLessThan, priceSort } = query;
+        let filter = { isDeleted: false }
+
+        //first store all the keys of query in k and then compare with the valid filters stored in another veriable named b
+        let k = Object.keys(query)
+        let b = ["size", "name", "priceGreaterThan", "priceLessThan", "priceSort"]
+
+        //if keys of provided query do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid filter name as 'size, name, priceGreaterThan, priceLessThan, priceSort' only" })
+        }
+
+        //----------------------------- Getting size filter -----------------------------//
+        if ("size" in query) {
+            if (Object.keys(size).length === 0) {
+                return res.status(400).send({ status: false, message: 'Size query is empty, either provide query value or deselect it.' })
+            }
+            let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+            var sizeArr = size.split(",").map(x => x.trim().toUpperCase())
+
+            for (let i = 0; i < sizeArr.length; i++) {
+                if (!(arr.includes(sizeArr[i]))) {
+                    return res.status(400).send({ status: false, message: `size should be among [${arr}]` })
+                }
+            }
+            filter.availableSizes = sizeArr[0]
+        }
+
+        //----------------------------- Getting name filter -----------------------------//
+        if ("name" in query) {
+            if (Object.keys(name).length === 0) {
+                return res.status(400).send({ status: false, message: 'Name query is empty, either provide query value or deselect it.' })
+            }
+            filter.title = { $regex: name, $options: "i" }     // $regex is used to filter the matching substrings, $options for upper and lower case both at once
+        }
+
+        //----------------------------- Getting priceGreaterThan filter -----------------------------//
+        if ("priceGreaterThan" in query) {
+            if (Object.keys(priceGreaterThan).length === 0) {
+                return res.status(400).send({ status: false, message: 'priceGreaterThan query is empty, either provide query value or deselect it.' })
+            }
+            if (isNaN(priceGreaterThan)) {
+                return res.status(400).send({ status: false, message: 'Price should be a valid number' })
+            }
+            if (priceGreaterThan < 0) {
+                return res.status(400).send({ status: false, message: 'Price can not be less than zero' })
+            }
+            filter.price = { $gt: priceGreaterThan }
+        }
+
+        //----------------------------- Getting priceLessThan filter -----------------------------//
+        if ("priceLessThan" in query) {
+            if (Object.keys(priceLessThan).length === 0) {
+                return res.status(400).send({ status: false, message: 'priceLessThan query is empty, either provide query value or deselect it.' })
+            }
+            if (isNaN(priceLessThan)) {
+                return res.status(400).send({ status: false, message: 'Price should be a valid number' })
+            }
+            if (priceLessThan <= 0) {
+                return res.status(400).send({ status: false, message: 'Price can not be zero or less than zero' })
+            }
+            filter.price = { $lt: priceLessThan }
+        }
+
+        //-------------------- Getting combination of priceLessThan & priceGreaterThan filter --------------------//
+        if ("priceLessThan" in query && "priceGreaterThan" in query) {
+            if (priceLessThan == priceGreaterThan) {
+                return res.status(400).send({ status: false, message: 'Please provide valid query for price' })
+            }
+            if (priceLessThan > priceGreaterThan) {
+                filter.price = { $gt: priceGreaterThan, $lt: priceLessThan }
+            }
+            if (priceLessThan < priceGreaterThan) {
+                return res.status(400).send({ status: false, message: 'Invalid filter for Price Range' })
+            }
+        }
+
+        //----------------------------- Getting priceSort filter -----------------------------//
+        if ("priceSort" in query) {
+            if (Object.keys(priceSort).length === 0) {
+                return res.status(400).send({ status: false, message: 'priceSort query is empty, either provide query value or deselect it.' })
+            }
+            if (priceSort != 1 && priceSort != -1) {
+                return res.status(400).send({ status: false, message: 'priceSort should be 1 or -1 ' })
+            }
+
+            const products = await productModel.find(filter).sort({ price: priceSort })
+            if (products.length === 0) {
+                return res.status(404).send({ status: false, message: 'No Product found' })
+            }
+            return res.status(200).send({ status: true, message: 'Sorted Data', data: products })
+        }
+
+        //----------------------------- Getting All combination filter -----------------------------//
+        const products = await productModel.find(filter)
+        if (products.length === 0) {
+            return res.status(404).send({ productStatus: false, message: 'No Product found with matching query' })
+        }
+        return res.status(200).send({ status: true, message: 'Success', data: products })
+    }
+    catch (err) {
+        return res.status(500).send({ status: false, msg: err.message })
+    }
+}
+
+
+
+
+/*########################################## 7. Get Product By Id #############################################*/
+
+const getProductById = async function (req, res) {
+    try {
+        const productId = req.params.productId
+
+        //validation for given productId
+        if (!mongoose.isValidObjectId(productId)) {
+            return res.status(400).send({ status: false, message: "please enter valid productId" })
+        }
+
+        //----------------------------- Getting Product Detail -----------------------------//
+        const productData = await productModel.findOne({ _id: productId, isDeleted: false })
+        if (!productData) {
+            return res.status(404).send({ status: false, message: "Product not found" })
+        }
+        return res.status(200).send({ status: true, message: "Product Detail", data: productData })
+    }
+    catch (err) {
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
@@ -306,141 +444,6 @@ const updateProductById = async function (req, res) {
 }
 
 
-/*############################################ 6. Get product #################################################*/
-
-const getproduct = async function (req, res) {
-    try {
-        let query = req.query;
-        const { size, name, priceGreaterThan, priceLessThan, priceSort } = query;
-        let filter = { isDeleted: false }
-
-        //first store all the keys of query in k and then compare with the valid filters stored in another veriable named b
-        let k = Object.keys(query)
-        let b = ["size", "name", "priceGreaterThan", "priceLessThan", "priceSort"]
-
-        //if keys of provided query do not matches with the element in b then it will return the response here only 
-        if (!(k.every(r => b.includes(r)))) {
-            return res.status(400).send({ status: false, message: "Please provide valid filter name as 'size, name, priceGreaterThan, priceLessThan, priceSort' only" })
-        }
-
-        //----------------------------- Getting size filter -----------------------------//
-
-        if ("size" in query) {
-            if (Object.keys(size).length === 0) {
-                return res.status(400).send({ status: false, message: 'Size query is empty, either provide query value or deselect it.' })
-            }
-            let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"]
-            var sizeArr = size.split(",").map(x => x.trim().toUpperCase())
-
-            for (let i = 0; i < sizeArr.length; i++) {
-                if (!(arr.includes(sizeArr[i]))) {
-                    return res.status(400).send({ status: false, message: `size should be among [${arr}]` })
-                }
-            }
-            filter.availableSizes = sizeArr[0]
-        }
-
-        //----------------------------- Getting name filter -----------------------------//
-        if ("name" in query) {
-            if (Object.keys(name).length === 0) {
-                return res.status(400).send({ status: false, message: 'Name query is empty, either provide query value or deselect it.' })
-            }
-            filter.title = { $regex: name, $options: "i" }     // $regex is used to filter the matching substrings, $options for upper and lower case both at once
-        }
-
-        //----------------------------- Getting priceGreaterThan filter -----------------------------//
-        if ("priceGreaterThan" in query) {
-            if (Object.keys(priceGreaterThan).length === 0) {
-                return res.status(400).send({ status: false, message: 'priceGreaterThan query is empty, either provide query value or deselect it.' })
-            }
-            if (isNaN(priceGreaterThan)) {
-                return res.status(400).send({ status: false, message: 'Price should be a valid number' })
-            }
-            if (priceGreaterThan < 0) {
-                return res.status(400).send({ status: false, message: 'Price can not be less than zero' })
-            }
-            filter.price = { $gt: priceGreaterThan }
-        }
-
-        //----------------------------- Getting priceLessThan filter -----------------------------//
-        if ("priceLessThan" in query) {
-            if (Object.keys(priceLessThan).length === 0) {
-                return res.status(400).send({ status: false, message: 'priceLessThan query is empty, either provide query value or deselect it.' })
-            }
-            if (isNaN(priceLessThan)) {
-                return res.status(400).send({ status: false, message: 'Price should be a valid number' })
-            }
-            if (priceLessThan <= 0) {
-                return res.status(400).send({ status: false, message: 'Price can not be zero or less than zero' })
-            }
-            filter.price = { $lt: priceLessThan }
-        }
-
-        //-------------------- Getting combination of priceLessThan & priceGreaterThan filter --------------------//
-        if ("priceLessThan" in query && "priceGreaterThan" in query) {
-            if (priceLessThan == priceGreaterThan) {
-                return res.status(400).send({ status: false, message: 'Please provide valid query for price' })
-            }
-            if (priceLessThan > priceGreaterThan) {
-                filter.price = { $gt: priceGreaterThan, $lt: priceLessThan }
-            }
-            if (priceLessThan < priceGreaterThan) {
-                return res.status(400).send({ status: false, message: 'Invalid filter for Price Range' })
-            }
-        }
-
-        //----------------------------- Getting priceSort filter -----------------------------//
-        if ("priceSort" in query) {
-            if (Object.keys(priceSort).length === 0) {
-                return res.status(400).send({ status: false, message: 'priceSort query is empty, either provide query value or deselect it.' })
-            }
-            if (priceSort != 1 && priceSort != -1) {
-                return res.status(400).send({ status: false, message: 'priceSort should be 1 or -1 ' })
-            }
-
-            const products = await productModel.find(filter).sort({ price: priceSort })
-            if (products.length === 0) {
-                return res.status(404).send({ status: false, message: 'No Product found' })
-            }
-            return res.status(200).send({ status: true, message: 'Sorted Data', data: products })
-        }
-
-        //----------------------------- Getting All combination filter -----------------------------//
-        const products = await productModel.find(filter)
-        if (products.length === 0) {
-            return res.status(404).send({ productStatus: false, message: 'No Product found with matching query' })
-        }
-        return res.status(200).send({ status: true, message: 'Success', data: products })
-    }
-    catch (err) {
-        return res.status(500).send({ status: false, msg: err.message })
-    }
-}
-
-
-
-/*########################################## 7. Get Product By Id #############################################*/
-
-const getProductById = async function (req, res) {
-    try {
-        const productId = req.params.productId
-
-        //validation for given productId
-        if (!mongoose.isValidObjectId(productId)) {
-            return res.status(400).send({ status: false, message: "please enter valid productId" })
-        }
-
-        //----------------------------- Getting Product Detail -----------------------------//
-        const productData = await productModel.findOne({ _id: productId, isDeleted: false })
-        if (!productData) {
-            return res.status(404).send({ status: false, message: "Product not found" })
-        }
-        return res.status(200).send({ status: true, message: "Product Detail", data: productData })
-    }
-    catch (err) {
-        return res.status(500).send({ status: false, message: err.message })
-    }
-}
 
 
 /*############################################ 9. Delete Product #################################################*/
@@ -468,4 +471,4 @@ const deleteProduct = async function (req, res) {
 
 
 
-module.exports = { createProduct, updateProductById, getproduct, getProductById, deleteProduct }
+module.exports = { createProduct, getproduct, getProductById, updateProductById, deleteProduct }
