@@ -32,6 +32,20 @@ const createProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "Body is required" })
         }
 
+        //first store all the keys of CreateData in k and then compare with the valid field stored in another veriable named b
+        let k = Object.keys(createData)
+        let b = ['title', 'description', 'price', 'currencyId', 'currencyFormat', 'isFreeShipping', 'style', 'availableSizes', 'installments']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid key name " })
+        }
+
+        //if key of provided file do not matches with 'productImage' then it will return the response here only 
+        if (!(files[0].fieldname === "productImage")) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'productImage' only" })
+        }
+
         //----------------------------- Validating title -----------------------------//
         if (!isValid(title)) {
             return res.status(400).send({ status: false, message: "title is required" })
@@ -309,13 +323,19 @@ const updateProductById = async function (req, res) {
             return res.status(400).send({ status: false, message: " Provide some data as input" })
         }
 
-        let { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments } = data
+        let { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments, productImage } = data
 
-        //first store all the keys of query in k and then compare with the valid filters stored in another veriable named b
+        if ('productImage' in data) {
+            if (Object.keys(productImage).length === 0) {
+                return res.status(400).send({ status: false, message: 'productImage is empty, either provide file or deselect it.' })
+            }
+        }
+
+        //first store all the keys of data in k and then compare with the valid field stored in another veriable named b
         let k = Object.keys(data)
         let b = ['title', 'description', 'price', 'currencyId', 'currencyFormat', 'isFreeShipping', 'style', 'availableSizes', 'installments']
 
-        //if keys of provided query do not matches with the element in b then it will return the response here only 
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
         if (!(k.every(r => b.includes(r)))) {
             return res.status(400).send({ status: false, message: "Please provide valid key name " })
         }
@@ -394,6 +414,10 @@ const updateProductById = async function (req, res) {
 
         //----------------------------- Updating Product Image -----------------------------//
         if (files && files.length > 0) {
+            //if key of provided file do not matches with 'productImage' then it will return the response here only       
+            if (!(files[0].fieldname === "productImage")) {
+                return res.status(400).send({ status: false, message: "Please provide valid field name as 'productImage' only" })
+            }
             let check = files[0].originalname.split(".")
             const extension = ["png", "jpg", "jpeg", "webp"]
             if (extension.indexOf(check[check.length - 1]) == -1) {
