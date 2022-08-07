@@ -102,7 +102,7 @@ const createOrder = async (req, res) => {
             { items: [], totalItems: 0, totalPrice: 0 },
             { returnDocument: "after" })
 
-        return res.status(201).send({ status: false, message: "Order Placed!!", data: output });
+        return res.status(201).send({ status: true, message: "Order Placed!!", data: output });
     }
     catch (error) {
         return res.status(500).send({ status: false, message: error.message });
