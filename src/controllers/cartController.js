@@ -29,6 +29,15 @@ const createCart = async function (req, res) {
             return res.status(400).send({ status: false, message: ' Post Body is empty, Please add some key-value pairs' })
         }
 
+        //first store all the keys of data in k and then compare with the valid field stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['productId', 'quantity', 'cartId']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid key name " })
+        }
+
         //----------------------------- Validating productId -----------------------------//
         if (!isValid(productId)) {
             return res.status(400).send({ status: false, message: ' ProductId must be required!' })
@@ -145,7 +154,7 @@ const updateCart = async function (req, res) {
         //----------------------------- Checking if card available in db -----------------------------//
         let cart = await cartModel.findOne({ userId, "items.productId": productId })
         if (!cart) {
-            return res.status(400).send({ status: false, message: "cart not found with given product id" })
+            return res.status(404).send({ status: false, message: "cart not found with given product id" })
         }
 
         //----------------------------- Validating CartId if given in req. body -----------------------------//
@@ -162,7 +171,7 @@ const updateCart = async function (req, res) {
         //----------------------------- Checking if Product available in db -----------------------------//
         let product = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!product) {
-            return res.status(400).send({ status: false, message: "product not found" })
+            return res.status(404).send({ status: false, message: "product not found" })
         }
 
         if (!(removeProduct === 0 || removeProduct === 1)) {

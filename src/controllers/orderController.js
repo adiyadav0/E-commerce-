@@ -26,7 +26,16 @@ const createOrder = async (req, res) => {
 
         //----------------------------- Validating body -----------------------------//
         if (!isValidBody(data)) {
-            return res.status(400).send({ status: false, message: "Please provide cartId, Cancellable and Status" })
+            return res.status(400).send({ status: false, message: "Please provide 'cartId', 'cancellable' and 'status' " })
+        }
+
+        //first store all the keys of data in k and then compare with the valid field stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['cartId', 'cancellable', 'status']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid key name " })
         }
 
         //----------------------------- Validating cartId -----------------------------//
@@ -66,7 +75,7 @@ const createOrder = async (req, res) => {
         //----------------------------- validating cancellable -----------------------------//
         if ("cancellable" in data) {
             if (typeof cancellable != "boolean") {
-                return res.status(400).send({ status: false, message: "Please enter cancellable as true or false or remove the key for default" });
+                return res.status(400).send({ status: false, message: "Please enter cancellable as 'true' or 'false' or remove the key for default" });
             }
             newData.cancellable = cancellable
         }
@@ -77,7 +86,7 @@ const createOrder = async (req, res) => {
                 return res.status(400).send({ status: false, message: "Please enter status" });
             }
             if (!["pending", "completed"].includes(status)) {
-                return res.status(400).send({ status: false, message: "Status must be pending or completed while creating order or remove the key for default" });
+                return res.status(400).send({ status: false, message: "Status must be 'pending' or 'completed' while creating order or remove the key for default" });
             }
             newData.status = status
         }
@@ -115,6 +124,15 @@ const updateOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: 'provide appropriate orderId in request body' })
         }
 
+        //first store all the keys of data in k and then compare with the valid field stored in another veriable named b
+        let k = Object.keys(req.body)
+        let b = ['orderId', 'status']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid key name " })
+        }
+
         //----------------------------- Validating orderId -----------------------------//
         if (!isValid(orderId)) {
             return res.status(400).send({ status: false, message: 'enter orderId' })
@@ -131,7 +149,7 @@ const updateOrder = async function (req, res) {
 
         //----------------------------- Validating order status -----------------------------//
         if (order.status == "cancelled" || order.status == "completed") {
-            return res.status(400).send({ status: false, message: "Order is already 'cancelled' or 'completed' " });
+            return res.status(400).send({ status: false, message: "Order is already 'completed' or 'cancelled' " });
         }
 
         if (!isValid(status)) {
