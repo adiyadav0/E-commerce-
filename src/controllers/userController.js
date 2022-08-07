@@ -38,6 +38,20 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "please provide data in request body" })
         }
 
+        //first store all the keys of data in k and then compare with the valid fields stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['fname', 'lname', 'email', 'phone', 'password', 'address']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'fname, lname, email, phone, password, address, profileImage' only" })
+        }
+
+        //if key of provided file do not matches with 'profileImage' then it will return the response here only 
+        if (!(files[0].fieldname === "profileImage")) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'profileImage' only" })
+        }
+
         //----------------------------- Validating fname -----------------------------//
         if (!isValid(fname)) {
             return res.status(400).send({ status: false, message: "fname is required" })
@@ -163,13 +177,13 @@ const createUser = async function (req, res) {
         //----------------------------- Checking Duplicate Email -----------------------------//
         let userEmail = await userModel.findOne({ email: email.trim() })
         if (userEmail) {
-            return res.status(409).send({ status: false, message: "This e-mail address is already exist , Please enter another E-mail address" })
+            return res.status(409).send({ status: false, message: "This e-mail address is already exist, Please enter another E-mail address" })
         }
 
         //----------------------------- Checking Duplicate Phone -----------------------------//
         let userNumber = await userModel.findOne({ phone: phone.trim() })
         if (userNumber) {
-            return res.status(409).send({ status: false, message: "This phone number is already exist , Please enter another phone number" })
+            return res.status(409).send({ status: false, message: "This phone number is already exist, Please enter another phone number" })
         }
         //upload to s3 and get the uploaded link
         let uploadedFileURL = await upload.uploadFile(files[0])
@@ -299,15 +313,35 @@ const updateUser = async function (req, res) {
             return res.status(404).send({ status: false, message: "User does not exist with this userId" })
         }
 
-        let { fname, lname, email, phone, password, address } = data
+        let { fname, lname, email, phone, password, address, profileImage } = data
 
         //----------------------------- Validating body -----------------------------//
         if (!isValidBody(data) && !isValid(files)) {
             return res.status(400).send({ status: false, message: "please provide data in request body" })
         }
 
-        //----------------------------- Updating Profile Image -----------------------------//
+        if ('profileImage' in data) {
+            if (Object.keys(profileImage).length === 0) {
+                return res.status(400).send({ status: false, message: 'profileImage is empty, either provide file or deselect it.' })
+            }
+        }
+
+        //first store all the keys of data in k and then compare with the valid fields stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['fname', 'lname', 'email', 'phone', 'password', 'address']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'fname, lname, email, phone, password, address, profileImage' only" })
+        }
+
+        //----------------------------- Updating Profile Image -----------------------------//       
         if (files && files.length != 0) {
+            //if key of provided file do not matches with 'profileImage' then it will return the response here only 
+            if (!(files[0].fieldname === "profileImage")) {
+                return res.status(400).send({ status: false, message: "Please provide valid field name as 'profileImage' only" })
+            }
+
             let check = files[0].originalname.split(".")
             const extension = ["png", "jpg", "jpeg", "webp"]
             if (extension.indexOf(check[check.length - 1]) == -1) {
