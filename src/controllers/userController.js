@@ -65,7 +65,7 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "lname is required" })
         }
         if (!NameRegex.test(lname.trim())) {
-            return res.status(400).send({ status: false, message: "fname is invalid" })
+            return res.status(400).send({ status: false, message: "lname is invalid" })
         }
 
         //----------------------------- Validating email -----------------------------//
@@ -226,14 +226,14 @@ const userLogin = async function (req, res) {
             return res.status(400).send({ status: false, message: "Please Enter Login Credentials..." })
         }
 
-        const email = data.email.trim()
-        const password = data.password.trim()
+        const email = data.email
+        const password = data.password
 
         //----------------------------- Validating Email -----------------------------//
         if (!isValid(email)) {
             return res.status(400).send({ status: false, message: "Please enter Email Id" })
         }
-        if (!emailRegex.test(email)) {
+        if (!emailRegex.test(email.trim())) {
             return res.status(400).send({ status: false, message: "Email is not valid" })
         }
 
@@ -241,12 +241,12 @@ const userLogin = async function (req, res) {
         if (!isValid(password)) {
             return res.status(400).send({ status: false, message: "Please enter Password" })
         }
-        if (!passwordRegex.test(password)) {
+        if (!passwordRegex.test(password.trim())) {
             return res.status(400).send({ status: false, message: "password should be strong please use One digit, one upper case , one lower case ,one special character, it between 8 to 15" })
         }
 
         //----------------------------- Checking Credential -----------------------------//
-        const user = await userModel.findOne({ email: email })
+        const user = await userModel.findOne({ email: email.trim() })
 
         if (user) {
             const validPassword = await bcrypt.compare(password, user.password);

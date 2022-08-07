@@ -70,7 +70,7 @@ const createProduct = async function (req, res) {
                 return res.status(400).send({ status: false, message: "Please enter isfreeshipping or remove this section's key also" });
             }
             if (!['true', 'false'].includes(isFreeShipping)) {
-                return res.status(400).send({ status: false, message: "isFreeshipping should be either True or False" });
+                return res.status(400).send({ status: false, message: "isFreeshipping should be either 'true' or 'false' " });
             }
         }
 
@@ -126,7 +126,7 @@ const createProduct = async function (req, res) {
         //----------------------------- Checking Duplicate title -----------------------------//
         let existingTitle = await productModel.findOne({ title: title.trim().split(' ').filter(a => a).join(' ') }).lean();
         if (existingTitle) {
-            return res.status(400).send({ status: false, message: "This Title already exist" });
+            return res.status(409).send({ status: false, message: "This Title already exist" });
         }
 
         //upload to s3 and get the uploaded link
@@ -347,7 +347,7 @@ const updateProductById = async function (req, res) {
             }
             let titleCheck = await productModel.findOne({ title: title.trim().split(' ').filter(a => a).join(' ') })
             if (titleCheck) {
-                return res.status(400).send({ status: false, message: 'Title already exists' })
+                return res.status(409).send({ status: false, message: 'Title already exists' })
             }
             updatedata.title = title.trim().split(' ').filter(a => a).join(' ')
         }

@@ -175,7 +175,7 @@ const updateCart = async function (req, res) {
         }
 
         if (!(removeProduct === 0 || removeProduct === 1)) {
-            return res.status(400).send({ status: false, message: "Please provide removeProduct as 1 to delete particular quantity of given product and 0 to delete the product itself" })
+            return res.status(400).send({ status: false, message: "Please provide removeProduct as 1 to delete particular quantity of given product or 0 to delete the product itself" })
         }
 
         if (cart.totalPrice == 0 && cart.totalItems == 0) {
