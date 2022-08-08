@@ -4,7 +4,7 @@ const upload = require('../.aws/config')
 const jwt = require('jsonwebtoken');
 
 
-/*############################################ Validations ########################################################*/
+/*############################################ Validations #######################################################*/
 
 let NameRegex = /^[a-zA-Z\.]+$/
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
@@ -38,6 +38,20 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "please provide data in request body" })
         }
 
+        //first store all the keys of data in k and then compare with the valid fields stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['fname', 'lname', 'email', 'phone', 'password', 'address']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'fname, lname, email, phone, password, address, profileImage' only" })
+        }
+
+        //if key of provided file do not matches with 'profileImage' then it will return the response here only 
+        if (!(files[0].fieldname === "profileImage")) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'profileImage' only" })
+        }
+
         //----------------------------- Validating fname -----------------------------//
         if (!isValid(fname)) {
             return res.status(400).send({ status: false, message: "fname is required" })
@@ -51,7 +65,7 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "lname is required" })
         }
         if (!NameRegex.test(lname.trim())) {
-            return res.status(400).send({ status: false, message: "fname is invalid" })
+            return res.status(400).send({ status: false, message: "lname is invalid" })
         }
 
         //----------------------------- Validating email -----------------------------//
@@ -163,13 +177,13 @@ const createUser = async function (req, res) {
         //----------------------------- Checking Duplicate Email -----------------------------//
         let userEmail = await userModel.findOne({ email: email.trim() })
         if (userEmail) {
-            return res.status(409).send({ status: false, message: "This e-mail address is already exist , Please enter another E-mail address" })
+            return res.status(409).send({ status: false, message: "This e-mail address is already exist, Please enter another E-mail address" })
         }
 
         //----------------------------- Checking Duplicate Phone -----------------------------//
         let userNumber = await userModel.findOne({ phone: phone.trim() })
         if (userNumber) {
-            return res.status(409).send({ status: false, message: "This phone number is already exist , Please enter another phone number" })
+            return res.status(409).send({ status: false, message: "This phone number is already exist, Please enter another phone number" })
         }
         //upload to s3 and get the uploaded link
         let uploadedFileURL = await upload.uploadFile(files[0])
@@ -212,14 +226,14 @@ const userLogin = async function (req, res) {
             return res.status(400).send({ status: false, message: "Please Enter Login Credentials..." })
         }
 
-        const email = data.email.trim()
-        const password = data.password.trim()
+        const email = data.email
+        const password = data.password
 
         //----------------------------- Validating Email -----------------------------//
         if (!isValid(email)) {
             return res.status(400).send({ status: false, message: "Please enter Email Id" })
         }
-        if (!emailRegex.test(email)) {
+        if (!emailRegex.test(email.trim())) {
             return res.status(400).send({ status: false, message: "Email is not valid" })
         }
 
@@ -227,12 +241,12 @@ const userLogin = async function (req, res) {
         if (!isValid(password)) {
             return res.status(400).send({ status: false, message: "Please enter Password" })
         }
-        if (!passwordRegex.test(password)) {
+        if (!passwordRegex.test(password.trim())) {
             return res.status(400).send({ status: false, message: "password should be strong please use One digit, one upper case , one lower case ,one special character, it between 8 to 15" })
         }
 
         //----------------------------- Checking Credential -----------------------------//
-        const user = await userModel.findOne({ email: email })
+        const user = await userModel.findOne({ email: email.trim() })
 
         if (user) {
             const validPassword = await bcrypt.compare(password, user.password);
@@ -287,8 +301,6 @@ const getUser = async function (req, res) {
 
 /*############################################ 4. Update User ###################################################*/
 
-
-
 const updateUser = async function (req, res) {
     try {
         let userId = req.params.userId
@@ -301,15 +313,35 @@ const updateUser = async function (req, res) {
             return res.status(404).send({ status: false, message: "User does not exist with this userId" })
         }
 
-        let { fname, lname, email, phone, password, address } = data
+        let { fname, lname, email, phone, password, address, profileImage } = data
 
         //----------------------------- Validating body -----------------------------//
         if (!isValidBody(data) && !isValid(files)) {
             return res.status(400).send({ status: false, message: "please provide data in request body" })
         }
 
-        //----------------------------- Updating Profile Image -----------------------------//
+        if ('profileImage' in data) {
+            if (Object.keys(profileImage).length === 0) {
+                return res.status(400).send({ status: false, message: 'profileImage is empty, either provide file or deselect it.' })
+            }
+        }
+
+        //first store all the keys of data in k and then compare with the valid fields stored in another veriable named b
+        let k = Object.keys(data)
+        let b = ['fname', 'lname', 'email', 'phone', 'password', 'address']
+
+        //if keys of provided data do not matches with the element in b then it will return the response here only 
+        if (!(k.every(r => b.includes(r)))) {
+            return res.status(400).send({ status: false, message: "Please provide valid field name as 'fname, lname, email, phone, password, address, profileImage' only" })
+        }
+
+        //----------------------------- Updating Profile Image -----------------------------//       
         if (files && files.length != 0) {
+            //if key of provided file do not matches with 'profileImage' then it will return the response here only 
+            if (!(files[0].fieldname === "profileImage")) {
+                return res.status(400).send({ status: false, message: "Please provide valid field name as 'profileImage' only" })
+            }
+
             let check = files[0].originalname.split(".")
             const extension = ["png", "jpg", "jpeg", "webp"]
             if (extension.indexOf(check[check.length - 1]) == -1) {
@@ -323,8 +355,7 @@ const updateUser = async function (req, res) {
         if ("fname" in data) {
             if (!isValid(fname) || !NameRegex.test(fname.trim())) {
                 return res.status(400).send({ status: false, message: "first name should contain alphabetic character only" })
-            }
-            checkUser.fname = fname.trim()
+            } checkUser.fname = fname.trim()
         }
 
         //----------------------------- Updating lname -----------------------------//
@@ -382,9 +413,8 @@ const updateUser = async function (req, res) {
                 if (parseAddress.shipping.street) {
                     if (!addressStreetRegex.test(parseAddress.shipping.street)) {
                         return res.status(400).send({ status: false, message: "Invalid Shipping street" })
-                    }
+                    } checkUser.address.shipping.street = parseAddress.shipping.street.trim().split(' ').filter(a => a).join(' ')
                 }
-                checkUser.address.shipping.street = parseAddress.shipping.street.trim().split(' ').filter(a => a).join(' ')
 
                 if (parseAddress.shipping.city) {
                     if (!addressCityRegex.test(parseAddress.shipping.city)) {
@@ -432,4 +462,4 @@ const updateUser = async function (req, res) {
 
 
 
-module.exports = { createUser, userLogin, updateUser, getUser }
+module.exports = { createUser, userLogin, getUser, updateUser }
