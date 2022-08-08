@@ -43,7 +43,7 @@ let authorization = async function (req, res, next) {
         }
 
         //----------------------------- Checking if User exist or not -----------------------------//
-        let user = await userModel.findOne({ _id: userId })
+        let user = await userModel.findById({ _id: userId })
         if (!user) {
             return res.status(404).send({ status: false, message: "User does not exist with this userId" })
         }
