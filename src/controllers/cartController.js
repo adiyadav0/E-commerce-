@@ -105,7 +105,9 @@ const createCart = async function (req, res) {
             return res.status(200).send({ status: true, message: " Item added successfully and Cart updated!", data: addedcart })
         }
 
-        //----------------------------- Creating cart here -----------------------------//     
+        //----------------------------- Creating cart here -----------------------------//    
+
+
         const object = {
             userId,
             items: [{ productId, quantity }],
@@ -126,8 +128,6 @@ const createCart = async function (req, res) {
         return res.status(500).send({ status: false, message: err.message })
     }
 }
-
-
 
 
 /*########################################## 11. Update Cart ####################################################*/
@@ -203,6 +203,7 @@ const updateCart = async function (req, res) {
         }
 
         //----------------------------- For reducing 1 quantity of Product from Cart -----------------------------//
+       
         if (removeProduct == 1) {
             for (let i = 0; i < cart.items.length; i++) {
                 if (cart.items[i].productId == productId) {
@@ -265,126 +266,6 @@ const getCart = async function (req, res) {
 }
 
 
-
-
-<<<<<<< HEAD
-/*########################################## 12. Update Cart ####################################################*/
-
-const updateCart = async function (req, res) {
-    try {
-        let userId = req.params.userId
-        let updateData = req.body
-        let {
-            productId,
-            cartId,
-            removeProduct
-        } = updateData
-        
-        if (!isValidBody(updateData)) {
-            return res.status(400).send({ status: false, message: ' Post Body is empty, Please add some key-value pairs' })
-        }
-
-        if (!isValidBody(updateData)) {
-            return res.status(400).send({ status: false, message: ' Post Body is empty, Please add some key-value pairs' })
-        }
-        if (!isValid(productId)) {
-            return res.status(400).send({ status: false, message: "ProductId can not be empty" })
-        }
-        if (!mongoose.isValidObjectId(productId)) {
-            return res.status(400).send({ status: false, message: "Invalid Product Id" })
-        }
-
-        
-        // if (!mongoose.isValidObjectId(cartId)) {
-        //     return res.status(400).send({ status: false, message: "Invalid cart Id" })
-        // }
-        let cart = await cartModel.findOne({ userId, "items.productId": productId })
-        console.log(cart)
-        if (!cart) {
-            return res.status(400).send({ status: false, message: "cart not found with given product id" })
-        }
-
-        // if (cart.userId != userId) {
-        //     return res.status(400).send({ status: false, message: "this cart doesn't belong to this user" })
-        // }
-        if ("cartId" in updateData) {
-            if (!mongoose.isValidObjectId(cartId)) {
-                return res.status(400).send({ status: false, message: " Invalid cartId !" })
-            }
-
-            // check both cartid's from req.body and db cart are match or not?
-            if (cart._id != cartId) {
-                return res.status(400).send({ status: false, message: " CartId doesn't belong to this user!" })
-            }
-        }
-
-        let product = await productModel.findOne({ _id: productId, isDeleted: false })
-        if (!product) {
-            return res.status(400).send({ status: false, message: "product not found" })
-        }
-
-
-        if (!(removeProduct === 0 || removeProduct === 1)) {
-            return res.status(400).send({ status: false, message: "Please provide removeProduct as 1 to delete particular quantity of given product and 0 to delete the product itself" })
-        }
-
-
-        if (cart.totalPrice == 0 && cart.totalItems == 0) {
-            return res.status(400).send({ status: false, message: "Cart is empty" })
-        }
-        if (removeProduct == 0) {
-
-            for (var i = 0; i < cart.items.length; i++) {
-                if (cart.items[i].productId == productId) {
-                    let quantityPrice = cart.items[i].quantity * product.price
-                    let updatedPrice = cart.totalPrice - quantityPrice
-                    cart.items.splice(i, 1)
-                    let updatedItems = cart.items.length
-
-                    let updatedCart = await cartModel.findOneAndUpdate({ userId }, { items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems },
-                        { returnDocument: "after" }).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
-                    return res.status(200).send({ status: true, message: "Updated successfully", data: updatedCart })
-                }
-            }
-        }
-
-        if (removeProduct == 1) {
-            for (let i = 0; i < cart.items.length; i++) {
-                if (cart.items[i].productId == productId) {
-
-                    if (cart.items[i].quantity === 1) {
-
-                        let updatedPrice = cart.totalPrice - (product.price)
-                        cart.items.splice(i, 1)
-                        let updatedItems = cart.items.length
-
-                        let updatedCart = await cartModel.findOneAndUpdate({ userId }, { items: cart.items, totalPrice: updatedPrice, totalItems: updatedItems },
-                            { returnDocument: "after" }).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
-                        return res.status(200).send({ status: true, message: "Updated successfully", data: updatedCart })
-                    }
-                    else {
-                        cart.items[i].quantity -= 1
-
-                        let updatedPrice = cart.totalPrice - (product.price)
-                        let updatedCart = await cartModel.findOneAndUpdate({ userId }, { items: cart.items, totalPrice: updatedPrice },
-                            { returnDocument: "after" }).populate([{ path: "items.productId", select: { title: 1, productImage: 1, price: 1, isFreeShipping: 1 } }])
-                        return res.status(200).send({ status: true, message: "Updated successfully", data: updatedCart })
-
-                    }
-                }
-            }
-        }
-    }
-    catch (error) {
-        console.log(error)
-        return res.status(500).send({ status: false, message: error.message })
-    }
-}
-
-
-
-=======
->>>>>>> ca218ffde1abf1dbb1a25a2b2cfad5a580ed5b34
 /*########################################## 13. Delete Cart ####################################################*/
 
 const deleteCart = async function (req, res) {
